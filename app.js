@@ -1,606 +1,537 @@
 // ============================================================
-// PropFirmEdge v3.0 — Professional Trading Intelligence
+// PropFirmEdge — App Logic
 // ============================================================
 
-// THEME TOGGLE
-const themeToggle = document.getElementById('themeToggle');
-const html = document.documentElement;
-const savedTheme = localStorage.getItem('pfe-theme') || 'dark';
-html.setAttribute('data-theme', savedTheme);
-updateThemeIcon();
-
-themeToggle.addEventListener('click', () => {
-  const current = html.getAttribute('data-theme');
-  const next = current === 'dark' ? 'light' : 'dark';
-  html.setAttribute('data-theme', next);
-  localStorage.setItem('pfe-theme', next);
-  updateThemeIcon();
-});
-
-function updateThemeIcon() {
-  const knob = themeToggle.querySelector('.theme-toggle-knob');
-  const isDark = html.getAttribute('data-theme') === 'dark';
-  knob.innerHTML = isDark
-    ? '<i class="fas fa-moon" style="font-size:9px;"></i>'
-    : '<i class="fas fa-sun" style="font-size:9px;"></i>';
-}
-
-// TAB NAVIGATION
-document.querySelectorAll('#mainNav .nav-tab').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('#mainNav .nav-tab').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-    btn.classList.add('active');
-    const tab = btn.getAttribute('data-tab');
-    document.getElementById('tab-' + tab).classList.add('active');
-    if (tab === 'firms') renderFirmDirectory('all');
-  });
-});
-
-// Firm filter buttons
-document.getElementById('firmFilterBtns').addEventListener('click', e => {
-  if (e.target.classList.contains('nav-tab')) {
-    document.querySelectorAll('#firmFilterBtns .nav-tab').forEach(b => b.classList.remove('active'));
-    e.target.classList.add('active');
-    renderFirmDirectory(e.target.getAttribute('data-filter'));
-  }
-});
-
-
-// ============================================================
 // FIRM DATABASE
-// ============================================================
-const FIRMS = {
-  topstep: {
-    name: "Topstep", cat: "futures", color: "#3b82f6",
-    payout: 90, maxPayout: 90, maxFunded: 300000, scaling: true,
-    refund: false, newsTrading: true, weekendHold: false, ea: false,
-    feature: "90% payout from day 1, no consistency rule",
-    description: "Industry pioneer with straightforward EOD trailing rules. Popular among scalpers and day traders who want clean rule sets without consistency requirements.",
-    promoCode: "EDGE", promoDiscount: "20% off",
-    sizes: {
-      "50000":  { "Trading Combine": { target: 3000, maxDD: 2000, daily: 1000, type: "eod", consistency: "0", minDays: 5 } },
-      "100000": { "Trading Combine": { target: 6000, maxDD: 3000, daily: 2000, type: "eod", consistency: "0", minDays: 5 } },
-      "150000": { "Trading Combine": { target: 9000, maxDD: 4500, daily: 3000, type: "eod", consistency: "0", minDays: 5 } }
-    }
+const FIRMS = [
+  {
+    key: 'lucid', name: 'Lucid Trading', cat: 'futures', color: '#4da6ff',
+    payout: 90, maxPayout: 90, maxFunded: 750000, scaling: true,
+    refund: false, news: true, weekend: false, ea: false,
+    feature: 'No funded consistency rule — buy 5 evals at 40% OFF',
+    code: 'EDGE', discount: 40,
+    plans: [
+      { size: 25000, name: 'Flex', type: 'Challenge', fee: 100, target: 1250, dd: 1000, ddType: 'EOD', daily: null, minDays: 5 },
+      { size: 25000, name: 'Pro', type: 'Challenge', fee: 120, target: 1250, dd: 1000, ddType: 'EOD', daily: null, minDays: 5 },
+      { size: 50000, name: 'Flex', type: 'Challenge', fee: 140, target: 3000, dd: 2000, ddType: 'EOD', daily: null, minDays: 5 },
+      { size: 50000, name: 'Pro', type: 'Challenge', fee: 160, target: 3000, dd: 2000, ddType: 'EOD', daily: 1200, minDays: 5 },
+      { size: 100000, name: 'Flex', type: 'Challenge', fee: 225, target: 6000, dd: 3000, ddType: 'EOD', daily: null, minDays: 5 },
+      { size: 100000, name: 'Pro', type: 'Challenge', fee: 275, target: 6000, dd: 3000, ddType: 'EOD', daily: 1800, minDays: 5 },
+      { size: 150000, name: 'Flex', type: 'Challenge', fee: 420, target: 9000, dd: 4500, ddType: 'EOD', daily: null, minDays: 5 },
+      { size: 150000, name: 'Pro', type: 'Challenge', fee: 370, target: 9000, dd: 4500, ddType: 'EOD', daily: 2700, minDays: 5 },
+    ]
   },
-  apex: {
-    name: "Apex Trader Funding", cat: "futures", color: "#f59e0b",
-    payout: 100, maxPayout: 100, maxFunded: 300000, scaling: false,
-    refund: false, newsTrading: true, weekendHold: false, ea: true,
-    feature: "100% of first $25K profit, then 90%",
-    description: "Aggressive payout structure with trailing drawdown. Best for traders who can manage intraday equity swings.",
-    promoCode: "EDGE", promoDiscount: "80% off",
-    sizes: {
-      "25000":  { "Full Trailing": { target: 1500, maxDD: 1500, daily: 99999, type: "trailing", consistency: "0", minDays: 7 } },
-      "50000":  { "Full Trailing": { target: 3000, maxDD: 2500, daily: 99999, type: "trailing", consistency: "0", minDays: 7 } },
-      "100000": { "Full Trailing": { target: 6000, maxDD: 3000, daily: 99999, type: "trailing", consistency: "0", minDays: 7 } },
-      "150000": { "Full Trailing": { target: 9000, maxDD: 5000, daily: 99999, type: "trailing", consistency: "0", minDays: 7 } },
-      "250000": { "Full Trailing": { target: 15000, maxDD: 6500, daily: 99999, type: "trailing", consistency: "0", minDays: 7 } }
-    }
+  {
+    key: 'tradeify', name: 'Tradeify', cat: 'futures', color: '#f04b6a',
+    payout: 90, maxPayout: 90, maxFunded: 750000, scaling: false,
+    refund: false, news: true, weekend: false, ea: false,
+    feature: '40% OFF + No Activation Fee on all evals',
+    code: 'EDGE', discount: 40,
+    plans: [
+      { size: 25000, name: 'Select', type: 'Challenge', fee: 109, target: 1500, dd: 1000, ddType: 'EOD', daily: null, minDays: 5 },
+      { size: 25000, name: 'Growth', type: 'Challenge', fee: 99, target: 1500, dd: 1000, ddType: 'EOD', daily: 600, minDays: 5 },
+      { size: 50000, name: 'Growth', type: 'Challenge', fee: 145, target: 3000, dd: 2000, ddType: 'EOD', daily: 1250, minDays: 5 },
+      { size: 50000, name: 'Select', type: 'Challenge', fee: 165, target: 2500, dd: 2000, ddType: 'EOD', daily: null, minDays: 5 },
+      { size: 100000, name: 'Growth', type: 'Challenge', fee: 255, target: 6000, dd: 3500, ddType: 'EOD', daily: 2500, minDays: 5 },
+      { size: 100000, name: 'Select', type: 'Challenge', fee: 265, target: 6000, dd: 3000, ddType: 'EOD', daily: null, minDays: 5 },
+      { size: 150000, name: 'Growth', type: 'Challenge', fee: 369, target: 9000, dd: 5000, ddType: 'EOD', daily: 3750, minDays: 5 },
+    ]
   },
-  myfundedfutures: {
-    name: "MyFundedFutures", cat: "futures", color: "#22c55e",
-    payout: 90, maxPayout: 90, maxFunded: 200000, scaling: false,
-    refund: true, newsTrading: true, weekendHold: false, ea: true,
-    feature: "Eval fee refunded on first payout",
-    description: "Offers both EOD and Static DD options. Fee refund makes this cost-effective for skilled traders.",
-    promoCode: "EDGE", promoDiscount: "10% off",
-    sizes: {
-      "50000": {
-        "Starter (EOD)": { target: 3000, maxDD: 2000, daily: 1100, type: "eod", consistency: "50", minDays: 1 },
-        "Expert (Static)": { target: 3000, maxDD: 2000, daily: 1100, type: "static", consistency: "50", minDays: 1 }
-      },
-      "100000": {
-        "Starter (EOD)": { target: 6000, maxDD: 3000, daily: 2200, type: "eod", consistency: "50", minDays: 1 },
-        "Expert (Static)": { target: 6000, maxDD: 3000, daily: 2200, type: "static", consistency: "50", minDays: 1 }
-      }
-    }
+  {
+    key: 'mff', name: 'MyFundedFutures', cat: 'futures', color: '#22d06c',
+    payout: 80, maxPayout: 90, maxFunded: 750000, scaling: false,
+    refund: true, news: true, weekend: false, ea: true,
+    feature: 'Rapid Plans — take payout up to 100K',
+    code: 'EDGE', discount: 12,
+    plans: [
+      { size: 50000, name: 'Flex Plan', type: 'Challenge', fee: 107, target: 3000, dd: 2000, ddType: 'EOD', daily: null, minDays: 5 },
+      { size: 50000, name: 'Rapid Plan', type: 'Challenge', fee: 157, target: 3000, dd: 2000, ddType: 'Intraday Trail', daily: null, minDays: 5 },
+      { size: 100000, name: 'Flex Plan', type: 'Challenge', fee: 207, target: 6000, dd: 3000, ddType: 'EOD', daily: null, minDays: 5 },
+      { size: 100000, name: 'Rapid Plan', type: 'Challenge', fee: 267, target: 6000, dd: 3000, ddType: 'Intraday Trail', daily: null, minDays: 5 },
+      { size: 150000, name: 'Flex Plan', type: 'Challenge', fee: 347, target: 9000, dd: 4500, ddType: 'EOD', daily: null, minDays: 5 },
+    ]
   },
-  lucid: {
-    name: "Lucid Markets", cat: "futures", color: "#8b5cf6",
-    payout: 85, maxPayout: 90, maxFunded: 250000, scaling: true,
-    refund: false, newsTrading: false, weekendHold: false, ea: false,
-    feature: "Flex or direct allocation paths",
-    description: "Two paths: Flex Challenge with lenient static DD, or Direct Allocation for experienced traders.",
-    promoCode: "EDGE", promoDiscount: "15% off",
-    sizes: {
-      "50000": {
-        "Lucid Flex": { target: 3000, maxDD: 2500, daily: 1500, type: "static", consistency: "50", minDays: 0 },
-        "Direct Allocation": { target: 4000, maxDD: 2000, daily: 1000, type: "trailing", consistency: "20", minDays: 3 }
-      },
-      "100000": {
-        "Lucid Flex": { target: 6000, maxDD: 5000, daily: 3000, type: "static", consistency: "50", minDays: 0 },
-        "Direct Allocation": { target: 8000, maxDD: 4000, daily: 2000, type: "trailing", consistency: "20", minDays: 3 }
-      }
-    }
+  {
+    key: 'alphaFutures', name: 'Alpha Futures', cat: 'futures', color: '#fb923c',
+    payout: 90, maxPayout: 90, maxFunded: 450000, scaling: true,
+    refund: false, news: false, weekend: false, ea: false,
+    feature: 'Low-cost evals with EOD trailing and quick payouts',
+    code: 'EDGE', discount: 15,
+    plans: [
+      { size: 25000, name: 'Zero', type: 'Challenge', fee: 79, target: 1500, dd: 1000, ddType: 'EOD', daily: null, minDays: 5 },
+      { size: 50000, name: 'Zero', type: 'Challenge', fee: 119, target: 3000, dd: 2000, ddType: 'EOD', daily: 1000, minDays: 5 },
+      { size: 50000, name: 'Standard', type: 'Challenge', fee: 79, target: 3000, dd: 2000, ddType: 'EOD', daily: null, minDays: 5 },
+      { size: 100000, name: 'Zero', type: 'Challenge', fee: 239, target: 6000, dd: 4000, ddType: 'EOD', daily: 2000, minDays: 5 },
+      { size: 150000, name: 'Standard', type: 'Challenge', fee: 239, target: 9000, dd: 6000, ddType: 'EOD', daily: 3000, minDays: 5 },
+    ]
   },
-  takeprofit: {
-    name: "Take Profit Trader", cat: "futures", color: "#06b6d4",
-    payout: 80, maxPayout: 80, maxFunded: 200000, scaling: false,
-    refund: false, newsTrading: true, weekendHold: false, ea: false,
-    feature: "Simple EOD rules, no consistency requirement",
-    description: "Straightforward EOD trailing with no consistency rule. Ideal for predictable trading.",
-    promoCode: "EDGE", promoDiscount: "15% off",
-    sizes: {
-      "25000":  { "Standard": { target: 1500, maxDD: 1500, daily: 750, type: "eod", consistency: "0", minDays: 5 } },
-      "50000":  { "Standard": { target: 3000, maxDD: 2000, daily: 1000, type: "eod", consistency: "0", minDays: 5 } },
-      "100000": { "Standard": { target: 6000, maxDD: 3000, daily: 1500, type: "eod", consistency: "0", minDays: 5 } },
-      "150000": { "Standard": { target: 9000, maxDD: 4500, daily: 2250, type: "eod", consistency: "0", minDays: 5 } }
-    }
+  {
+    key: 'e8markets', name: 'E8 Markets', cat: 'futures', color: '#a855f7',
+    payout: 80, maxPayout: 85, maxFunded: 750000, scaling: true,
+    refund: false, news: true, weekend: false, ea: true,
+    feature: 'Low fees, no daily loss on Signature plan',
+    code: 'EDGE', discount: 40,
+    plans: [
+      { size: 25000, name: 'Signature', type: 'Challenge', fee: 110, target: 1500, dd: 1000, ddType: 'EOD', daily: null, minDays: 5 },
+      { size: 50000, name: 'Signature', type: 'Challenge', fee: 150, target: 3000, dd: 2000, ddType: 'EOD', daily: null, minDays: 5 },
+      { size: 100000, name: 'Signature', type: 'Challenge', fee: 260, target: 6000, dd: 3000, ddType: 'EOD', daily: null, minDays: 5 },
+      { size: 150000, name: 'Signature', type: 'Challenge', fee: 390, target: 9000, dd: 4500, ddType: 'EOD', daily: null, minDays: 5 },
+    ]
   },
-  tradeify: {
-    name: "Tradeify", cat: "futures", color: "#ef4444",
-    payout: 90, maxPayout: 90, maxFunded: 150000, scaling: false,
-    refund: false, newsTrading: true, weekendHold: false, ea: false,
-    feature: "No daily loss limit, trailing DD only",
-    description: "No daily loss limit — only trailing drawdown. Perfect for aggressive intraday traders.",
-    promoCode: "EDGE", promoDiscount: "20% off",
-    sizes: {
-      "25000":  { "Standard": { target: 1500, maxDD: 1500, daily: 99999, type: "trailing", consistency: "0", minDays: 0 } },
-      "50000":  { "Standard": { target: 3000, maxDD: 2000, daily: 99999, type: "trailing", consistency: "0", minDays: 0 } },
-      "100000": { "Standard": { target: 6000, maxDD: 3000, daily: 99999, type: "trailing", consistency: "0", minDays: 0 } }
-    }
+  {
+    key: 'fundedNext', name: 'FundedNext Futures', cat: 'futures', color: '#38bdf8',
+    payout: 80, maxPayout: 90, maxFunded: 500000, scaling: true,
+    refund: false, news: false, weekend: true, ea: true,
+    feature: 'Multiple account types — Bolt, Legacy, Rapid plans',
+    code: 'EDGE', discount: 5,
+    plans: [
+      { size: 25000, name: 'Bolt', type: 'Challenge', fee: 79.99, target: 1500, dd: 1000, ddType: 'EOD', daily: null, minDays: 5 },
+      { size: 50000, name: 'Bolt', type: 'Challenge', fee: 99.99, target: 3000, dd: 2000, ddType: 'EOD', daily: null, minDays: 5 },
+      { size: 50000, name: 'Legacy', type: 'Challenge', fee: 149.99, target: 2500, dd: 2000, ddType: 'EOD', daily: null, minDays: 5 },
+      { size: 100000, name: 'Legacy', type: 'Challenge', fee: 249.99, target: 6000, dd: 3000, ddType: 'EOD', daily: null, minDays: 5 },
+    ]
   },
-  earn2trade: {
-    name: "Earn2Trade", cat: "futures", color: "#fb923c",
-    payout: 80, maxPayout: 80, maxFunded: 150000, scaling: true,
-    refund: false, newsTrading: false, weekendHold: false, ea: false,
-    feature: "Scaling plan up to $400K, educational focus",
-    description: "Best for developing traders with educational resources and progressive scaling.",
-    promoCode: "EDGE", promoDiscount: "10% off",
-    sizes: {
-      "50000":  { "Gauntlet Mini": { target: 3000, maxDD: 2000, daily: 1000, type: "eod", consistency: "0", minDays: 15 } },
-      "100000": { "Gauntlet Mini": { target: 6000, maxDD: 3500, daily: 1750, type: "eod", consistency: "0", minDays: 15 } }
-    }
-  },
-  ftmo: {
-    name: "FTMO", cat: "forex", color: "#3b82f6",
+  {
+    key: 'ftmo', name: 'FTMO', cat: 'forex', color: '#4da6ff',
     payout: 80, maxPayout: 90, maxFunded: 400000, scaling: true,
-    refund: true, newsTrading: false, weekendHold: true, ea: true,
-    feature: "Free trial, fee refund, scaling to $2M",
-    description: "The gold standard in forex prop. Static DD, fee refund on first payout, scaling up to $2M.",
-    promoCode: "EDGE", promoDiscount: "10% off",
-    sizes: {
-      "10000":  { "FTMO Challenge": { target: 1000, maxDD: 1000, daily: 500, type: "static", consistency: "0", minDays: 4 } },
-      "25000":  { "FTMO Challenge": { target: 2500, maxDD: 2500, daily: 1250, type: "static", consistency: "0", minDays: 4 } },
-      "50000":  { "FTMO Challenge": { target: 5000, maxDD: 5000, daily: 2500, type: "static", consistency: "0", minDays: 4 },
-                  "Swing Account": { target: 5000, maxDD: 10000, daily: 99999, type: "static", consistency: "0", minDays: 4 } },
-      "100000": { "FTMO Challenge": { target: 10000, maxDD: 10000, daily: 5000, type: "static", consistency: "0", minDays: 4 } },
-      "200000": { "FTMO Challenge": { target: 20000, maxDD: 20000, daily: 10000, type: "static", consistency: "0", minDays: 4 } }
-    }
+    refund: true, news: false, weekend: true, ea: true,
+    feature: 'Industry standard — fee refund on first withdrawal',
+    code: 'EDGE', discount: 10,
+    plans: [
+      { size: 10000, name: 'FTMO Challenge', type: 'Challenge', fee: 155, target: 1000, dd: 1000, ddType: 'Static', daily: 500, minDays: 4 },
+      { size: 25000, name: 'FTMO Challenge', type: 'Challenge', fee: 250, target: 2500, dd: 2500, ddType: 'Static', daily: 1250, minDays: 4 },
+      { size: 50000, name: 'FTMO Challenge', type: 'Challenge', fee: 345, target: 5000, dd: 5000, ddType: 'Static', daily: 2500, minDays: 4 },
+      { size: 100000, name: 'FTMO Challenge', type: 'Challenge', fee: 540, target: 10000, dd: 10000, ddType: 'Static', daily: 5000, minDays: 4 },
+      { size: 200000, name: 'FTMO Challenge', type: 'Challenge', fee: 1080, target: 20000, dd: 20000, ddType: 'Static', daily: 10000, minDays: 4 },
+    ]
   },
-  thefundedtrader: {
-    name: "The Funded Trader", cat: "forex", color: "#22c55e",
+  {
+    key: 'fundedtrader', name: 'The Funded Trader', cat: 'forex', color: '#22d06c',
     payout: 80, maxPayout: 90, maxFunded: 600000, scaling: true,
-    refund: false, newsTrading: false, weekendHold: true, ea: true,
-    feature: "Up to $600K funded, aggressive scaling",
-    description: "Highest funded account cap. Aggressive scaling for skilled traders.",
-    promoCode: "EDGE", promoDiscount: "15% off",
-    sizes: {
-      "25000":  { "Standard": { target: 2500, maxDD: 1500, daily: 750, type: "static", consistency: "0", minDays: 5 } },
-      "50000":  { "Standard": { target: 5000, maxDD: 3000, daily: 1500, type: "static", consistency: "0", minDays: 5 } },
-      "100000": { "Standard": { target: 10000, maxDD: 6000, daily: 3000, type: "static", consistency: "0", minDays: 5 } },
-      "200000": { "Standard": { target: 20000, maxDD: 12000, daily: 6000, type: "static", consistency: "0", minDays: 5 } }
-    }
+    refund: false, news: false, weekend: true, ea: true,
+    feature: 'Up to $600K funded, aggressive scaling plan',
+    code: 'EDGE', discount: 15,
+    plans: [
+      { size: 25000, name: 'Standard', type: 'Challenge', fee: 119, target: 2500, dd: 1500, ddType: 'Static', daily: 750, minDays: 5 },
+      { size: 50000, name: 'Standard', type: 'Challenge', fee: 189, target: 5000, dd: 3000, ddType: 'Static', daily: 1500, minDays: 5 },
+      { size: 100000, name: 'Standard', type: 'Challenge', fee: 315, target: 10000, dd: 6000, ddType: 'Static', daily: 3000, minDays: 5 },
+      { size: 200000, name: 'Standard', type: 'Challenge', fee: 530, target: 20000, dd: 12000, ddType: 'Static', daily: 6000, minDays: 5 },
+    ]
   },
-  e8funding: {
-    name: "E8 Funding", cat: "forex", color: "#8b5cf6",
-    payout: 80, maxPayout: 85, maxFunded: 400000, scaling: true,
-    refund: false, newsTrading: true, weekendHold: true, ea: true,
-    feature: "News trading allowed, weekend holds OK",
-    description: "Permissive rules: news, weekend holds, and EAs all allowed. No minimum days.",
-    promoCode: "EDGE", promoDiscount: "15% off",
-    sizes: {
-      "25000":  { "E8 Evaluation": { target: 2000, maxDD: 2000, daily: 1000, type: "static", consistency: "0", minDays: 0 } },
-      "50000":  { "E8 Evaluation": { target: 4000, maxDD: 4000, daily: 2000, type: "static", consistency: "0", minDays: 0 } },
-      "100000": { "E8 Evaluation": { target: 8000, maxDD: 8000, daily: 4000, type: "static", consistency: "0", minDays: 0 } }
-    }
-  },
-  fundedpips: {
-    name: "Funding Pips", cat: "forex", color: "#06b6d4",
+  {
+    key: 'fundedpips', name: 'Funding Pips', cat: 'forex', color: '#06b6d4',
     payout: 80, maxPayout: 80, maxFunded: 200000, scaling: false,
-    refund: false, newsTrading: false, weekendHold: false, ea: false,
-    feature: "No minimum trading days — fast pass possible",
-    description: "Zero minimum days means you can pass in a single session.",
-    promoCode: "EDGE", promoDiscount: "10% off",
-    sizes: {
-      "25000":  { "Standard": { target: 2000, maxDD: 1500, daily: 750, type: "static", consistency: "0", minDays: 0 } },
-      "50000":  { "Standard": { target: 4000, maxDD: 3000, daily: 1500, type: "static", consistency: "0", minDays: 0 } },
-      "100000": { "Standard": { target: 8000, maxDD: 6000, daily: 3000, type: "static", consistency: "0", minDays: 0 } }
-    }
+    refund: false, news: false, weekend: false, ea: false,
+    feature: 'No minimum trading days — fastest possible pass',
+    code: 'EDGE', discount: 10,
+    plans: [
+      { size: 25000, name: 'Standard', type: 'Challenge', fee: 99, target: 2000, dd: 1500, ddType: 'Static', daily: 750, minDays: 0 },
+      { size: 50000, name: 'Standard', type: 'Challenge', fee: 165, target: 4000, dd: 3000, ddType: 'Static', daily: 1500, minDays: 0 },
+      { size: 100000, name: 'Standard', type: 'Challenge', fee: 279, target: 8000, dd: 6000, ddType: 'Static', daily: 3000, minDays: 0 },
+    ]
   },
-  fundednext: {
-    name: "FundedNext", cat: "forex", color: "#fb923c",
-    payout: 90, maxPayout: 95, maxFunded: 300000, scaling: true,
-    refund: false, newsTrading: false, weekendHold: true, ea: true,
-    feature: "15% of eval profits + up to 95% funded payout",
-    description: "Earn 15% of eval phase profits. Up to 95% payout funded with aggressive scaling.",
-    promoCode: "EDGE", promoDiscount: "20% off",
-    sizes: {
-      "15000":  { "Express": { target: 1500, maxDD: 750, daily: 300, type: "static", consistency: "0", minDays: 0 } },
-      "25000":  { "Stellar": { target: 2500, maxDD: 1500, daily: 750, type: "static", consistency: "0", minDays: 5 } },
-      "50000":  { "Stellar": { target: 5000, maxDD: 3000, daily: 1500, type: "static", consistency: "0", minDays: 5 } },
-      "100000": { "Stellar": { target: 10000, maxDD: 6000, daily: 3000, type: "static", consistency: "0", minDays: 5 } }
-    }
-  }
-};
+];
 
 
 // ============================================================
-// FIRM DROPDOWN & PRESETS
+// STATE
 // ============================================================
-function initFirmDropdown() {
-  const sel = document.getElementById('propFirm');
-  sel.innerHTML = '<option value="custom">── Custom / Manual ──</option>';
-  const fg = document.createElement('optgroup'); fg.label = "FUTURES";
-  const xg = document.createElement('optgroup'); xg.label = "FOREX / CFD";
-  Object.keys(FIRMS).forEach(k => {
-    const o = document.createElement('option'); o.value = k; o.textContent = FIRMS[k].name;
-    FIRMS[k].cat === 'futures' ? fg.appendChild(o) : xg.appendChild(o);
-  });
-  sel.appendChild(fg); sel.appendChild(xg);
-  const ts = document.getElementById('track-firm');
-  ts.innerHTML = '';
-  Object.keys(FIRMS).forEach(k => {
-    const o = document.createElement('option'); o.value = k; o.textContent = FIRMS[k].name;
-    ts.appendChild(o);
-  });
+let currentDDFilter = 'all';
+let currentSizeFilter = '50000';
+let currentFirmFilter = 'all';
+let currentSort = 'truecost';
+let currentSortDir = 'asc';
+let currentPage = 1;
+const PAGE_SIZE = 8;
+let evals = JSON.parse(localStorage.getItem('pfe_evals') || '[]');
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+  const el = document.getElementById('page-' + name);
+  if (el) el.classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (name === 'compare') renderCompare();
+  if (name === 'simulator') initSimFirmDropdown();
+  if (name === 'tracker') renderTracker();
+  window.scrollTo(0, 0);
+  return false;
 }
 
-function updateSizes() {
-  const k = document.getElementById('propFirm').value;
-  const sel = document.getElementById('propSize');
-  sel.innerHTML = '';
-  if (k === 'custom' || !FIRMS[k]) { sel.innerHTML = '<option value="custom">Manual</option>'; updateTypes(); return; }
-  Object.keys(FIRMS[k].sizes).forEach(sz => {
-    const o = document.createElement('option'); o.value = sz; o.textContent = '$' + parseInt(sz).toLocaleString();
-    sel.appendChild(o);
-  });
-  updateTypes();
+function toggleMobileMenu() {
+  document.getElementById('mobileMenu').classList.toggle('open');
 }
 
-function updateTypes() {
-  const k = document.getElementById('propFirm').value;
-  const sz = document.getElementById('propSize').value;
-  const sel = document.getElementById('propType');
-  sel.innerHTML = '';
-  if (k === 'custom' || sz === 'custom' || !FIRMS[k] || !FIRMS[k].sizes[sz]) {
-    sel.innerHTML = '<option value="custom">Manual</option>'; return;
-  }
-  Object.keys(FIRMS[k].sizes[sz]).forEach(t => {
-    const o = document.createElement('option'); o.value = t; o.textContent = t;
-    sel.appendChild(o);
-  });
-  applyPreset();
+function copyCode() {
+  navigator.clipboard.writeText('EDGE').then(() => showToast());
 }
 
-function applyPreset() {
-  const k = document.getElementById('propFirm').value;
-  const sz = document.getElementById('propSize').value;
-  const t = document.getElementById('propType').value;
-  if (k === 'custom' || sz === 'custom' || t === 'custom') return;
-  const p = FIRMS[k].sizes[sz][t];
-  if (!p) return;
-  document.getElementById('capital').value = sz;
-  document.getElementById('propTarget').value = p.target;
-  document.getElementById('propMaxDD').value = p.maxDD;
-  document.getElementById('propDailyLoss').value = p.daily;
-  document.getElementById('propDDType').value = p.type;
-  document.getElementById('propConsistency').value = p.consistency;
-  document.getElementById('propMinDays').value = p.minDays;
-  runSim();
+function showToast() {
+  const t = document.getElementById('toastMsg');
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 2500);
 }
 
-function breakToCustom() {
-  document.getElementById('propFirm').value = 'custom';
-  document.getElementById('propSize').innerHTML = '<option value="custom">Manual</option>';
-  document.getElementById('propType').innerHTML = '<option value="custom">Manual</option>';
-}
-
-
 // ============================================================
-// SIMULATION ENGINE
+// TABLE INIT
 // ============================================================
-function simulate(capital, wr, rr, riskPct, numTrades, dailyLoss, maxDD, ddType) {
-  let bal = capital, curve = [bal], pnlHist = [], ddFloor = [capital - maxDD];
-  let peak = capital, dayStart = capital, dayPnl = 0;
-  let worstDD = 0, peakDDpct = 0;
-  let gp = 0, gl = 0, wins = 0, losses = 0, seq = [];
-  let sumW = 0, sumL = 0, hiWin = 0;
-  let winDays = 0, lossDays = 0, days = 0;
-  let failReason = null, totalExec = 0;
-  const baseRisk = capital * riskPct;
-
-  for (let i = 0; i < numTrades; i++) {
-    if (failReason) break;
-    totalExec++;
-    let pnl = Math.random() <= wr
-      ? baseRisk * rr * (0.94 + Math.random() * 0.12)
-      : -(baseRisk * (0.98 + Math.random() * 0.04));
-    if (pnl > 0) { gp += pnl; sumW += pnl; wins++; seq.push('W'); if (pnl > hiWin) hiWin = pnl; }
-    else { gl += Math.abs(pnl); sumL += Math.abs(pnl); losses++; seq.push('L'); }
-    pnlHist.push(pnl);
-    bal += pnl; curve.push(bal); dayPnl += pnl;
-    if (dayPnl < 0 && Math.abs(dayPnl) >= dailyLoss) failReason = "DAILY_LOSS";
-    if ((i + 1) % 3 === 0 || i === numTrades - 1) {
-      days++;
-      if (dayPnl > 0) winDays++; else if (dayPnl < 0) lossDays++;
-      if (ddType === 'eod' && bal > dayStart) dayStart = bal;
-      dayPnl = 0;
-    }
-    if (bal > peak) peak = bal;
-    let dd = ddType === 'trailing' ? peak - bal : ddType === 'eod' ? dayStart - bal : capital - bal;
-    ddFloor.push(ddType === 'trailing' ? peak - maxDD : ddType === 'eod' ? dayStart - maxDD : capital - maxDD);
-    if (dd > worstDD) worstDD = dd;
-    if ((peak - bal) / peak > peakDDpct) peakDDpct = (peak - bal) / peak;
-    if (dd >= maxDD) failReason = "MAX_DD";
-  }
-  return { curve, pnlHist, ddFloor, peakDDpct, worstDD, gp, gl, seq, wins, losses, winDays, lossDays, days, totalExec,
-    avgW: wins === 0 ? 0 : sumW / wins, avgL: losses === 0 ? 0 : sumL / losses, hiWin, failReason };
-}
-
-let chartInstances = {};
-function destroyChart(id) { if (chartInstances[id]) { chartInstances[id].destroy(); delete chartInstances[id]; } }
-
-
-// ============================================================
-// RUN SIMULATION
-// ============================================================
-function runSim() {
-  const capital = parseFloat(document.getElementById('capital').value) || 50000;
-  const wr = parseFloat(document.getElementById('winRate').value) / 100;
-  const rr = parseFloat(document.getElementById('rrRatio').value);
-  const riskPct = parseFloat(document.getElementById('riskPct').value) / 100;
-  const numTrades = parseInt(document.getElementById('numTrades').value);
-  const target = parseFloat(document.getElementById('propTarget').value) || 0;
-  const maxDD = parseFloat(document.getElementById('propMaxDD').value) || 1;
-  const daily = parseFloat(document.getElementById('propDailyLoss').value) || 99999;
-  const ddType = document.getElementById('propDDType').value;
-  const consPct = parseFloat(document.getElementById('propConsistency').value);
-  const minDays = parseInt(document.getElementById('propMinDays').value) || 0;
-
-  const path = simulate(capital, wr, rr, riskPct, numTrades, daily, maxDD, ddType);
-  const netPnL = path.curve[path.curve.length - 1] - capital;
-  const pf = path.gl === 0 ? '∞' : (path.gp / path.gl).toFixed(2);
-  const expectancy = (wr * (capital * riskPct * rr)) - ((1 - wr) * (capital * riskPct));
-
-  document.getElementById('m-equity').textContent = (netPnL >= 0 ? '+$' : '-$') + Math.abs(netPnL).toLocaleString(undefined, {maximumFractionDigits: 0});
-  document.getElementById('m-equity').style.color = netPnL >= 0 ? 'var(--accent-green)' : 'var(--accent-red)';
-  document.getElementById('m-expectancy').textContent = '$' + expectancy.toLocaleString(undefined, {maximumFractionDigits: 0});
-  document.getElementById('m-drawdown').textContent = (path.peakDDpct * 100).toFixed(2) + '%';
-  document.getElementById('m-pf').textContent = pf;
-  document.getElementById('m-pf').style.color = parseFloat(pf) > 1 ? 'var(--accent-green)' : 'var(--accent-red)';
-  document.getElementById('m-wr').textContent = ((path.wins / path.totalExec) * 100).toFixed(1) + '%';
-  document.getElementById('m-avgwl').textContent = '$' + Math.round(path.avgW) + ' / $' + Math.round(path.avgL);
-  document.getElementById('m-wdays').textContent = path.winDays + ' / ' + path.days;
-  document.getElementById('m-hiwin').textContent = '$' + Math.round(path.hiWin).toLocaleString();
-  document.getElementById('s-win').textContent = path.wins;
-  document.getElementById('s-loss').textContent = path.losses;
-
-  // Sequence
-  const seqEl = document.getElementById('sequenceTimeline');
-  seqEl.innerHTML = '';
-  path.seq.forEach(s => {
-    const b = document.createElement('div');
-    b.className = 'seq-block';
-    b.style.background = s === 'W' ? 'var(--accent-green)' : 'var(--accent-red)';
-    b.textContent = s;
-    seqEl.appendChild(b);
-  });
-
-  // Audit
-  const consPassed = consPct <= 0 || netPnL <= 0 || (path.hiWin / netPnL * 100) <= consPct;
-  const daysPassed = path.days >= minDays;
-  const targetMet = netPnL >= target;
-  const auditBox = document.getElementById('auditStatusBox');
-
-  if (path.failReason === 'MAX_DD') {
-    auditBox.innerHTML = `<div><span style="font-size:12px;font-weight:700;color:var(--accent-red);">BREACHED — Max Drawdown</span><p style="font-size:11px;color:var(--text-muted);margin-top:2px;">Account exceeded maximum drawdown limit.</p></div><div style="width:28px;height:28px;border-radius:50%;background:var(--red-bg);display:flex;align-items:center;justify-content:center;color:var(--accent-red);font-weight:700;">✕</div>`;
-  } else if (path.failReason === 'DAILY_LOSS') {
-    auditBox.innerHTML = `<div><span style="font-size:12px;font-weight:700;color:var(--accent-red);">BREACHED — Daily Loss</span><p style="font-size:11px;color:var(--text-muted);margin-top:2px;">Daily loss limit exceeded.</p></div><div style="width:28px;height:28px;border-radius:50%;background:var(--red-bg);display:flex;align-items:center;justify-content:center;color:var(--accent-red);font-weight:700;">✕</div>`;
-  } else if (!targetMet) {
-    auditBox.innerHTML = `<div><span style="font-size:12px;font-weight:700;color:var(--accent-amber);">Target Not Reached</span><p style="font-size:11px;color:var(--text-muted);margin-top:2px;">Rules clean but target not met.</p></div><div style="width:28px;height:28px;border-radius:50%;background:var(--amber-bg);display:flex;align-items:center;justify-content:center;color:var(--accent-amber);font-weight:700;">!</div>`;
-  } else if (!consPassed) {
-    auditBox.innerHTML = `<div><span style="font-size:12px;font-weight:700;color:var(--accent-amber);">Consistency Violation</span><p style="font-size:11px;color:var(--text-muted);margin-top:2px;">Profit concentration exceeds cap.</p></div><div style="width:28px;height:28px;border-radius:50%;background:var(--amber-bg);display:flex;align-items:center;justify-content:center;color:var(--accent-amber);font-weight:700;">!</div>`;
-  } else if (!daysPassed) {
-    auditBox.innerHTML = `<div><span style="font-size:12px;font-weight:700;color:var(--accent-amber);">Min Days Not Met</span><p style="font-size:11px;color:var(--text-muted);margin-top:2px;">Insufficient trading days.</p></div><div style="width:28px;height:28px;border-radius:50%;background:var(--amber-bg);display:flex;align-items:center;justify-content:center;color:var(--accent-amber);font-weight:700;">!</div>`;
-  } else {
-    auditBox.innerHTML = `<div><span style="font-size:12px;font-weight:700;color:var(--accent-green);">✓ EVALUATION PASSED</span><p style="font-size:11px;color:var(--text-muted);margin-top:2px;">All compliance rules verified.</p></div><div style="width:28px;height:28px;border-radius:50%;background:var(--green-bg);display:flex;align-items:center;justify-content:center;color:var(--accent-green);font-weight:700;">✓</div>`;
-  }
-
-  document.getElementById('auditTarget').textContent = `$${Math.round(netPnL).toLocaleString()} / $${target.toLocaleString()}`;
-  document.getElementById('auditTarget').style.color = targetMet ? 'var(--accent-green)' : 'var(--accent-red)';
-  document.getElementById('auditDD').textContent = `$${Math.round(path.worstDD).toLocaleString()} / $${maxDD.toLocaleString()}`;
-  document.getElementById('auditDD').style.color = !path.failReason ? 'var(--accent-green)' : 'var(--accent-red)';
-  document.getElementById('auditCons').textContent = netPnL > 0 && consPct > 0 ? (path.hiWin / netPnL * 100).toFixed(1) + '%' : 'N/A';
-  document.getElementById('auditCons').style.color = consPassed ? 'var(--accent-green)' : 'var(--accent-amber)';
-  document.getElementById('auditDaily').textContent = path.failReason !== 'DAILY_LOSS' ? 'Passed' : 'VIOLATED';
-  document.getElementById('auditDaily').style.color = path.failReason !== 'DAILY_LOSS' ? 'var(--accent-green)' : 'var(--accent-red)';
-  document.getElementById('auditDays').textContent = `${path.days} / ${minDays} required`;
-  document.getElementById('auditDays').style.color = daysPassed ? 'var(--accent-green)' : 'var(--accent-amber)';
-
-  // Pass Probability
-  let passCount = 0;
-  for (let i = 0; i < 500; i++) {
-    const p2 = simulate(capital, wr, rr, riskPct, numTrades, daily, maxDD, ddType);
-    const n2 = p2.curve[p2.curve.length - 1] - capital;
-    const c2 = consPct <= 0 || n2 <= 0 || (p2.hiWin / n2 * 100) <= consPct;
-    const d2 = p2.days >= minDays;
-    if (!p2.failReason && n2 >= target && c2 && d2) passCount++;
-  }
-  const pct = (passCount / 500 * 100).toFixed(1);
-  document.getElementById('passProb').textContent = pct + '%';
-  document.getElementById('passProb').style.color = pct >= 60 ? 'var(--accent-green)' : pct >= 35 ? 'var(--accent-amber)' : 'var(--accent-red)';
-  document.getElementById('probBar').style.width = pct + '%';
-  document.getElementById('probBar').style.background = pct >= 60 ? 'var(--accent-green)' : pct >= 35 ? 'var(--accent-amber)' : 'var(--accent-red)';
-  document.getElementById('probLabel').textContent = pct >= 60 ? 'Strong pass probability — strategy aligns with rules.' : pct >= 35 ? 'Moderate — consider adjusting parameters.' : 'Low pass rate — strategy frequently violates rules.';
-
-  renderCharts(path, numTrades, capital, riskPct, target, maxDD, ddType, wr, rr);
-}
-
-
-// ============================================================
-// CHARTS
-// ============================================================
-function renderCharts(path, numTrades, capital, riskPct, target, maxDD, ddType, wr, rr) {
-  const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--border-primary').trim();
-  const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-muted').trim();
-  Chart.defaults.color = textColor;
-  Chart.defaults.font.family = "'JetBrains Mono', monospace";
-  Chart.defaults.font.size = 10;
-
-  destroyChart('equityChart');
-  chartInstances['equityChart'] = new Chart(document.getElementById('equityChart'), {
-    type: 'line',
-    data: {
-      labels: path.curve.map((_, i) => i),
-      datasets: [
-        { label: 'Balance', data: path.curve, borderColor: '#3b82f6', borderWidth: 2, fill: false, pointRadius: 0, tension: 0.2 },
-        { label: 'DD Floor', data: path.ddFloor, borderColor: '#ef4444', borderWidth: 1.5, fill: false, pointRadius: 0, borderDash: [4,2] },
-        { label: 'Target', data: new Array(path.curve.length).fill(capital + target), borderColor: '#22c55e', borderWidth: 1.5, borderDash: [6,4], fill: false, pointRadius: 0 }
-      ]
-    },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'top', labels: { boxWidth: 8, font: { size: 9 } } } }, scales: { x: { display: false }, y: { grid: { color: gridColor } } } }
-  });
-
-  destroyChart('monteCarloChart');
-  const envelopes = [];
-  for (let i = 0; i < 200; i++) {
-    const p = simulate(capital, wr, rr, riskPct, numTrades, 99999, maxDD * 2, ddType);
-    envelopes.push({ data: p.curve, borderColor: 'rgba(59,130,246,0.06)', borderWidth: 1, fill: false, pointRadius: 0, tension: 0.1 });
-  }
-  chartInstances['monteCarloChart'] = new Chart(document.getElementById('monteCarloChart'), {
-    type: 'line',
-    data: { labels: Array.from({ length: numTrades + 1 }, (_, i) => i), datasets: envelopes },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: gridColor } } }, animation: { duration: 0 } }
-  });
-
-  destroyChart('distributionChart');
-  chartInstances['distributionChart'] = new Chart(document.getElementById('distributionChart'), {
-    data: {
-      labels: path.pnlHist.map((_, i) => i + 1),
-      datasets: [
-        { type: 'bar', data: path.pnlHist, backgroundColor: path.pnlHist.map(v => v >= 0 ? 'rgba(34,197,94,0.6)' : 'rgba(239,68,68,0.6)'), borderRadius: 2, barPercentage: 0.6, yAxisID: 'yL' },
-        { type: 'line', data: path.curve.slice(1), borderColor: '#8b5cf6', borderWidth: 1.5, fill: false, pointRadius: 0, yAxisID: 'yR' }
-      ]
-    },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, yL: { position: 'left', grid: { color: gridColor } }, yR: { position: 'right', grid: { display: false } } } }
-  });
-
-  const rBrackets = ['<-2R', '-2→-1R', '-1→0R', '0→1R', '1→2R', '2→3R', '>3R'];
-  const counts = new Array(7).fill(0);
-  const base = capital * riskPct;
-  path.pnlHist.forEach(v => {
-    const r = v / base;
-    if (r < -2) counts[0]++;
-    else if (r >= -2 && r < -1) counts[1]++;
-    else if (r >= -1 && r < 0) counts[2]++;
-    else if (r >= 0 && r < 1) counts[3]++;
-    else if (r >= 1 && r < 2) counts[4]++;
-    else if (r >= 2 && r < 3) counts[5]++;
-    else counts[6]++;
-  });
-
-  destroyChart('histogramChart');
-  chartInstances['histogramChart'] = new Chart(document.getElementById('histogramChart'), {
-    data: {
-      labels: rBrackets,
-      datasets: [{ type: 'bar', data: counts, backgroundColor: counts.map((_, i) => i < 3 ? 'rgba(239,68,68,0.6)' : 'rgba(34,197,94,0.6)'), borderRadius: 4, barPercentage: 0.7 }]
-    },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { grid: { color: gridColor } } } }
-  });
-}
-
-
-// ============================================================
-// FIRM DIRECTORY
-// ============================================================
-function renderFirmDirectory(filter) {
-  const grid = document.getElementById('firmDirectoryGrid');
-  grid.innerHTML = '';
-
-  Object.keys(FIRMS).forEach(k => {
-    const f = FIRMS[k];
-    if (filter !== 'all' && f.cat !== filter) return;
-
-    const planCount = Object.values(f.sizes).reduce((n, s) => n + Object.keys(s).length, 0);
-    const maxSizeStr = f.maxFunded >= 1000000 ? '$' + (f.maxFunded / 1000000).toFixed(1) + 'M' : '$' + (f.maxFunded / 1000) + 'K';
-
-    let planRows = '';
-    Object.keys(f.sizes).forEach(sz => {
-      Object.keys(f.sizes[sz]).forEach(t => {
-        const p = f.sizes[sz][t];
-        const ddLabel = p.type === 'trailing' ? 'Trail' : p.type === 'eod' ? 'EOD' : 'Static';
-        planRows += `<div class="plan-row">
-          <span style="color:var(--text-primary);">$${parseInt(sz).toLocaleString()}</span>
-          <span style="color:var(--accent-green);">$${p.target.toLocaleString()}</span>
-          <span style="color:var(--accent-red);">$${p.maxDD.toLocaleString()}</span>
-          <span style="color:var(--text-secondary);">${ddLabel}</span>
-          <span style="color:var(--text-secondary);">${p.minDays}d</span>
-        </div>`;
-      });
+function getFilteredPlans() {
+  let plans = [];
+  FIRMS.forEach(f => {
+    f.plans.forEach(p => {
+      plans.push({ ...p, firmKey: f.key, firmName: f.name, firmColor: f.color, payout: f.payout, code: f.code, discount: f.discount });
     });
+  });
+  if (currentFirmFilter !== 'all') plans = plans.filter(p => p.firmKey === currentFirmFilter);
+  if (currentDDFilter !== 'all') {
+    if (currentDDFilter === 'funded') plans = plans.filter(p => p.type === 'Funded');
+    else plans = plans.filter(p => p.ddType === currentDDFilter);
+  }
+  if (currentSizeFilter !== 'all') plans = plans.filter(p => p.size === parseInt(currentSizeFilter));
+  // sort
+  plans.sort((a, b) => {
+    const aTc = a.fee * (1 - a.discount / 100);
+    const bTc = b.fee * (1 - b.discount / 100);
+    if (currentSort === 'truecost') return currentSortDir === 'asc' ? aTc - bTc : bTc - aTc;
+    if (currentSort === 'fee') return currentSortDir === 'asc' ? a.fee - b.fee : b.fee - a.fee;
+    return 0;
+  });
+  return plans;
+}
 
-    const card = document.createElement('div');
-    card.className = 'firm-card';
-    card.style.setProperty('--firm-color', f.color);
-    card.innerHTML = `
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
-        <div style="display:flex;align-items:center;gap:14px;">
-          <div style="width:48px;height:48px;border-radius:14px;background:${f.color}18;display:flex;align-items:center;justify-content:center;">
-            <span style="font-size:18px;font-weight:800;color:${f.color};">${f.name.charAt(0)}</span>
-          </div>
+function sortTable(col) {
+  if (currentSort === col) currentSortDir = currentSortDir === 'asc' ? 'desc' : 'asc';
+  else { currentSort = col; currentSortDir = 'asc'; }
+  const icon = document.getElementById('sortIcon');
+  if (icon) icon.textContent = currentSortDir === 'asc' ? '↑' : '↓';
+  renderTable();
+}
+
+function filterByDD(type, btn) {
+  currentDDFilter = type;
+  document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentPage = 1;
+  renderTable();
+}
+
+function filterBySize(size, btn) {
+  currentSizeFilter = size;
+  document.querySelectorAll('.size-pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentPage = 1;
+  renderTable();
+}
+
+function filterTable() {
+  currentFirmFilter = document.getElementById('firmFilter').value;
+  currentPage = 1;
+  renderTable();
+}
+
+function resetFilters() {
+  currentFirmFilter = 'all';
+  currentDDFilter = 'all';
+  currentSizeFilter = '50000';
+  currentPage = 1;
+  document.getElementById('firmFilter').value = 'all';
+  document.querySelectorAll('.filter-pill').forEach((b, i) => b.classList.toggle('active', i === 0));
+  document.querySelectorAll('.size-pill').forEach(b => b.classList.toggle('active', b.getAttribute('data-size') === '50000'));
+  renderTable();
+}
+
+function liveSearch(val) {
+  if (!val.trim()) { renderTable(); return; }
+  const q = val.toLowerCase();
+  const plans = getFilteredPlans().filter(p =>
+    p.firmName.toLowerCase().includes(q) ||
+    p.name.toLowerCase().includes(q) ||
+    p.ddType.toLowerCase().includes(q) ||
+    String(p.size).includes(q)
+  );
+  renderTableRows(plans);
+}
+
+function runSearch() {
+  liveSearch(document.getElementById('heroSearch').value);
+  document.getElementById('firms').scrollIntoView({ behavior: 'smooth' });
+}
+
+function renderTable() {
+  const plans = getFilteredPlans();
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const page = plans.slice(start, start + PAGE_SIZE);
+  renderTableRows(page);
+  renderPagination(plans.length);
+}
+
+function renderTableRows(plans) {
+  // Desktop table
+  const tbody = document.getElementById('challengeTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  plans.forEach(p => {
+    const trueCost = (p.fee * (1 - p.discount / 100)).toFixed(2);
+    const ddBadgeClass = p.ddType === 'EOD' ? 'dd-eod' : p.ddType === 'Intraday Trail' ? 'dd-trail' : 'dd-static';
+    const pts = Math.round(p.fee * (1 - p.discount / 100) * 2.5) + '+ pts';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="td-firm">
+        <div class="firm-cell">
+          <div class="firm-logo" style="--fc:${p.firmColor};">${p.firmName.charAt(0)}</div>
           <div>
-            <div style="font-size:16px;font-weight:700;">${f.name}</div>
-            <div style="display:flex;gap:6px;margin-top:4px;">
-              <span class="badge badge-blue">${f.cat.toUpperCase()}</span>
-              <span class="badge badge-purple">${planCount} plans</span>
-            </div>
+            <div class="firm-name-link">${p.firmName}</div>
+            <div><span class="plan-badge">${p.name}</span></div>
+          </div>
+        </div>
+      </td>
+      <td>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <span style="font-size:15px;font-weight:600;font-family:'JetBrains Mono',monospace;">$${p.size.toLocaleString()}</span>
+          <span class="acct-badge">${p.type}</span>
+        </div>
+      </td>
+      <td>$${p.target.toLocaleString()}</td>
+      <td>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <span style="color:#989898;">${p.dd ? '$' + p.dd.toLocaleString() : '—'}</span>
+          <span class="dd-badge ${ddBadgeClass}">${p.ddType}</span>
+        </div>
+      </td>
+      <td style="color:#989898;">${p.daily ? '$' + p.daily.toLocaleString() : 'None'}</td>
+      <td style="font-weight:600;">$${p.fee}</td>
+      <td>
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <span class="true-cost-val">$${trueCost}</span>
+          ${parseFloat(trueCost) === Math.min(...getFilteredPlans().map(x => x.fee*(1-x.discount/100))) ? '<span class="cheapest-badge">Cheapest</span>' : ''}
+        </div>
+      </td>
+      <td><span class="pts-val">${pts}</span></td>
+      <td>
+        <button class="buy-btn" onclick="handleBuy('${p.firmKey}')">
+          <span class="buy-info">
+            <span class="buy-discount">${p.discount}% OFF</span>
+            <span class="buy-label">Buy Now</span>
+          </span>
+          <span class="buy-cost-wrap">
+            <span class="buy-cost-label">True Cost</span>
+            <span class="buy-prices">
+              <span class="buy-orig">$${p.fee}</span>
+              <span class="buy-final">$${trueCost}</span>
+            </span>
+          </span>
+          <span class="buy-arrow">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </span>
+        </button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // Mobile cards
+  const mobileContainer = document.getElementById('mobileFirmCards');
+  if (!mobileContainer) return;
+  mobileContainer.innerHTML = '';
+  plans.forEach(p => {
+    const trueCost = (p.fee * (1 - p.discount / 100)).toFixed(2);
+    const ddBadgeClass = p.ddType === 'EOD' ? 'dd-eod' : p.ddType === 'Intraday Trail' ? 'dd-trail' : 'dd-static';
+    const card = document.createElement('div');
+    card.className = 'mobile-firm-card';
+    card.innerHTML = `
+      <div class="mfc-header">
+        <div class="mfc-logo" style="color:${p.firmColor};">${p.firmName.charAt(0)}</div>
+        <div class="mfc-info">
+          <div class="mfc-name">${p.firmName}</div>
+          <div style="margin-top:6px;"><span class="plan-badge">${p.name}</span></div>
+        </div>
+        <div class="mfc-right">
+          <p class="mfc-size-label">Account</p>
+          <p class="mfc-size mono">$${p.size.toLocaleString()}</p>
+          <span class="acct-badge" style="margin-top:6px;">${p.type}</span>
+        </div>
+      </div>
+      <div class="mfc-stats">
+        <div class="mfc-stat"><p class="mfc-stat-label">Profit Target</p><p class="mfc-stat-val">$${p.target.toLocaleString()}</p></div>
+        <div class="mfc-stat"><p class="mfc-stat-label">Drawdown</p><div style="margin-top:3px;"><span style="color:#989898;">${p.dd ? '$'+p.dd.toLocaleString() : '—'}</span><br><span class="dd-badge ${ddBadgeClass}" style="margin-top:4px;">${p.ddType}</span></div></div>
+        <div class="mfc-stat"><p class="mfc-stat-label">Daily Loss</p><p class="mfc-stat-val" style="color:#989898;">${p.daily ? '$'+p.daily.toLocaleString() : 'None'}</p></div>
+        <div class="mfc-stat"><p class="mfc-stat-label">Challenge Fee</p><p class="mfc-stat-val" style="font-weight:600;">$${p.fee}</p></div>
+      </div>
+      <div class="mfc-buy">
+        <button class="buy-btn" style="width:100%;" onclick="handleBuy('${p.firmKey}')">
+          <span class="buy-info"><span class="buy-discount">${p.discount}% OFF</span><span class="buy-label">Buy Now</span></span>
+          <span class="buy-cost-wrap"><span class="buy-cost-label">True Cost</span><span class="buy-prices"><span class="buy-orig">$${p.fee}</span><span class="buy-final">$${trueCost}</span></span></span>
+          <span class="buy-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+        </button>
+      </div>
+    `;
+    mobileContainer.appendChild(card);
+  });
+}
+
+function renderPagination(total) {
+  const pages = Math.ceil(total / PAGE_SIZE);
+  const pg = document.getElementById('pagination');
+  const info = document.getElementById('paginationInfo');
+  if (!pg) return;
+  pg.innerHTML = '';
+  const prev = document.createElement('button');
+  prev.className = 'page-btn'; prev.textContent = 'Previous'; prev.disabled = currentPage === 1;
+  prev.onclick = () => { currentPage--; renderTable(); };
+  pg.appendChild(prev);
+  const nums = document.createElement('div');
+  nums.style.cssText = 'display:flex;align-items:center;gap:6px;background:#141414;border-radius:7px;padding:4px 8px;';
+  for (let i = 1; i <= Math.min(pages, 5); i++) {
+    const b = document.createElement('button');
+    b.className = 'page-num' + (i === currentPage ? ' active' : '');
+    b.textContent = i; b.onclick = () => { currentPage = i; renderTable(); };
+    nums.appendChild(b);
+  }
+  pg.appendChild(nums);
+  const next = document.createElement('button');
+  next.className = 'page-btn'; next.textContent = 'Next'; next.disabled = currentPage >= pages;
+  next.onclick = () => { currentPage++; renderTable(); };
+  pg.appendChild(next);
+  if (info) info.textContent = `Showing ${(currentPage-1)*PAGE_SIZE+1}–${Math.min(currentPage*PAGE_SIZE, total)} of ${total} options`;
+}
+
+function handleBuy(firmKey) {
+  showToast();
+}
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-pill').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+  if (name === 'allfirms') renderAllFirms();
+}
+
+
+// ============================================================
+// ALL FIRMS GRID
+// ============================================================
+function renderAllFirms(filterMkt, filterDD) {
+  const grid = document.getElementById('allFirmsGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  let firms = FIRMS;
+  if (filterMkt && filterMkt !== 'all') firms = firms.filter(f => f.cat === filterMkt);
+  if (filterDD && filterDD !== 'all') firms = firms.filter(f => f.plans.some(p => p.ddType === filterDD));
+
+  firms.forEach(f => {
+    const card = document.createElement('div');
+    card.className = 'firm-overview-card';
+    card.innerHTML = `
+      <div class="foc-header">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div class="firm-logo" style="--fc:${f.color};">${f.name.charAt(0)}</div>
+          <div>
+            <div class="foc-name">${f.name}</div>
+            <span class="acct-badge" style="margin-top:5px;">${f.cat.toUpperCase()}</span>
           </div>
         </div>
         <div style="text-align:right;">
-          <div class="mono" style="font-size:28px;font-weight:800;color:${f.color};">${f.payout}%</div>
-          <div style="font-size:10px;color:var(--text-muted);">payout</div>
+          <div class="foc-payout" style="color:${f.color};">${f.payout}%</div>
+          <div style="font-size:11px;color:#989898;">payout</div>
         </div>
       </div>
-      <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-bottom:16px;">${f.description}</p>
-      <div style="background:${f.color}10;border:1px solid ${f.color}30;border-radius:10px;padding:10px 14px;margin-bottom:16px;">
-        <span style="font-size:12px;color:${f.color};font-weight:600;"><i class="fas fa-star" style="margin-right:4px;"></i>${f.feature}</span>
+      <div class="foc-feature">⭐ ${f.feature}</div>
+      <div class="foc-badges">
+        <span class="foc-badge ${f.scaling?'yes':'no'}">${f.scaling?'✓ Scaling':'✗ No Scaling'}</span>
+        <span class="foc-badge ${f.refund?'yes':'no'}">${f.refund?'✓ Refund':'✗ No Refund'}</span>
+        <span class="foc-badge ${f.news?'yes':'no'}">${f.news?'✓ News OK':'✗ No News'}</span>
+        <span class="foc-badge ${f.weekend?'yes':'no'}">${f.weekend?'✓ Weekend':'✗ No Weekend'}</span>
+        <span class="foc-badge ${f.ea?'yes':'no'}">${f.ea?'✓ EA/Bots':'✗ No EA'}</span>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;">
-        <div style="background:var(--bg-input);border-radius:8px;padding:10px 12px;">
-          <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;margin-bottom:3px;">Max Funded</div>
-          <div class="mono" style="font-size:14px;font-weight:700;">${maxSizeStr}</div>
-        </div>
-        <div style="background:var(--bg-input);border-radius:8px;padding:10px 12px;">
-          <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;margin-bottom:3px;">Max Payout</div>
-          <div class="mono" style="font-size:14px;font-weight:700;">${f.maxPayout}%</div>
-        </div>
-        <div style="background:var(--bg-input);border-radius:8px;padding:10px 12px;">
-          <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;margin-bottom:3px;">Accounts</div>
-          <div class="mono" style="font-size:14px;font-weight:700;">${Object.keys(f.sizes).length}</div>
-        </div>
-      </div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;">
-        <span class="badge ${f.scaling?'badge-green':'badge-red'}">${f.scaling?'✓ Scaling':'✗ No Scaling'}</span>
-        <span class="badge ${f.refund?'badge-green':'badge-red'}">${f.refund?'✓ Refund':'✗ No Refund'}</span>
-        <span class="badge ${f.newsTrading?'badge-green':'badge-red'}">${f.newsTrading?'✓ News':'✗ No News'}</span>
-        <span class="badge ${f.weekendHold?'badge-green':'badge-red'}">${f.weekendHold?'✓ Weekend':'✗ No Weekend'}</span>
-        <span class="badge ${f.ea?'badge-green':'badge-red'}">${f.ea?'✓ EA/Bots':'✗ No EA'}</span>
-      </div>
-      <div style="background:var(--bg-input);border-radius:10px;padding:14px;border:1px solid var(--border-primary);margin-bottom:16px;">
-        <div class="plan-row plan-header" style="border-bottom:1px solid var(--border-secondary);padding-bottom:6px;margin-bottom:4px;">
-          <span>Size</span><span>Target</span><span>Max DD</span><span>DD Type</span><span>Min Days</span>
-        </div>
-        ${planRows}
-      </div>
-      <div class="promo-box">
+      <div class="foc-code">
         <div>
-          <span style="font-size:11px;color:var(--text-muted);">Discount Code:</span>
-          <span class="promo-code" style="margin-left:8px;">EDGE</span>
+          <div style="font-size:11px;color:#989898;margin-bottom:2px;">Discount Code</div>
+          <span class="foc-code-val">${f.code}</span>
         </div>
-        <span class="promo-discount">${f.promoDiscount}</span>
+        <div style="text-align:right;">
+          <div style="font-size:11px;color:#989898;margin-bottom:2px;">Discount</div>
+          <span class="foc-code-disc">${f.discount}% OFF</span>
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// ============================================================
+// COMPARE PAGE
+// ============================================================
+let compareFilters = { mkt: 'all', dd: 'all', sort: 'truecost' };
+
+function filterCompare(type, val, btn) {
+  compareFilters[type] = val;
+  const attr = type === 'mkt' ? 'data-mkt' : 'data-cdd';
+  document.querySelectorAll(`[${attr}]`).forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderCompare();
+}
+
+function sortCompare(val) { compareFilters.sort = val; renderCompare(); }
+
+function renderCompare() {
+  const grid = document.getElementById('compareGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  let firms = FIRMS;
+  if (compareFilters.mkt !== 'all') firms = firms.filter(f => f.cat === compareFilters.mkt);
+
+  firms.forEach(f => {
+    let plans = f.plans;
+    if (compareFilters.dd !== 'all') plans = plans.filter(p => p.ddType === compareFilters.dd);
+    if (!plans.length) return;
+
+    if (compareFilters.sort === 'truecost') plans.sort((a,b) => (a.fee*(1-a.discount/100)) - (b.fee*(1-b.discount/100)));
+    else if (compareFilters.sort === 'payout') plans = plans; // firm level
+    else if (compareFilters.sort === 'discount') plans.sort((a,b) => b.discount - a.discount);
+
+    const bestPlan = plans[0];
+    const trueCost = (bestPlan.fee * (1 - bestPlan.discount/100)).toFixed(2);
+    const ddClass = bestPlan.ddType === 'EOD' ? 'dd-eod' : bestPlan.ddType === 'Intraday Trail' ? 'dd-trail' : 'dd-static';
+
+    const card = document.createElement('div');
+    card.className = 'compare-card';
+    card.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="firm-logo" style="--fc:${f.color};">${f.name.charAt(0)}</div>
+          <div>
+            <div style="font-size:15px;font-weight:700;">${f.name}</div>
+            <span class="acct-badge" style="margin-top:4px;">${f.cat.toUpperCase()}</span>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:800;color:${f.color};">${f.payout}%</div>
+          <div style="font-size:10px;color:#989898;">payout</div>
+        </div>
+      </div>
+      <div style="background:#1b1b1b;border-radius:10px;padding:14px;margin-bottom:14px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px;">
+          <div><span style="color:#989898;display:block;font-size:10px;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:3px;">Best Plan</span>${bestPlan.name} · $${bestPlan.size.toLocaleString()}</div>
+          <div><span style="color:#989898;display:block;font-size:10px;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:3px;">Target</span>$${bestPlan.target.toLocaleString()}</div>
+          <div><span style="color:#989898;display:block;font-size:10px;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:3px;">Max DD</span><span style="color:#989898;">$${bestPlan.dd ? bestPlan.dd.toLocaleString() : '—'}</span> <span class="dd-badge ${ddClass}" style="margin-left:4px;">${bestPlan.ddType}</span></div>
+          <div><span style="color:#989898;display:block;font-size:10px;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:3px;">Daily Loss</span><span style="color:#989898;">${bestPlan.daily ? '$'+bestPlan.daily.toLocaleString() : 'None'}</span></div>
+        </div>
+      </div>
+      <button class="buy-btn" style="width:100%;" onclick="handleBuy('${f.key}')">
+        <span class="buy-info"><span class="buy-discount">${bestPlan.discount}% OFF</span><span class="buy-label">Buy Now</span></span>
+        <span class="buy-cost-wrap">
+          <span class="buy-cost-label">True Cost</span>
+          <span class="buy-prices"><span class="buy-orig">$${bestPlan.fee}</span><span class="buy-final">$${trueCost}</span></span>
+        </span>
+        <span class="buy-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+      </button>
+      <div style="margin-top:10px;display:flex;justify-content:space-between;font-size:12px;color:#989898;">
+        <span>${plans.length} plan${plans.length > 1 ? 's' : ''} available</span>
+        <span>Code: <b style="color:#a78bfa;">${f.code}</b></span>
       </div>
     `;
     grid.appendChild(card);
@@ -609,268 +540,361 @@ function renderFirmDirectory(filter) {
 
 
 // ============================================================
-// SMART MATCHER
+// FAQ
 // ============================================================
-function runMatcher() {
-  const wr = parseFloat(document.getElementById('m-wr-in').value) / 100;
-  const rr = parseFloat(document.getElementById('m-rr-in').value);
-  const riskPct = parseFloat(document.getElementById('m-risk-in').value) / 100;
-  const tpd = parseFloat(document.getElementById('m-tpd-in').value);
-  const ddPref = document.getElementById('m-dd-in').value;
-  const consPref = document.getElementById('m-cons-in').value;
-  const daysPref = document.getElementById('m-days-in').value;
-  const mktPref = document.getElementById('m-market-in').value;
-  const results = [];
+const FAQS = [
+  { q: 'What is a Proprietary Trading Firm?', a: 'A prop firm provides traders with capital to trade financial markets. In return, traders share a percentage of their profits. Most firms require passing an evaluation challenge first.' },
+  { q: 'How does the evaluation process work?', a: 'You pay a fee to take a challenge. You must hit a profit target while staying within drawdown limits. Once passed, you receive a funded account and keep a share of profits — typically 80–90%.' },
+  { q: 'What does the discount code EDGE do?', a: 'Using code EDGE at checkout on supported firms gives you a verified percentage discount on the challenge fee — reducing your true cost and improving your ROI on a funded account.' },
+  { q: 'What is EOD vs Intraday Trailing drawdown?', a: 'EOD (End-of-Day) trailing only locks in your high-water mark at the end of each day. Intraday trailing moves in real time as your balance grows during the session — making it harder to manage.' },
+  { q: 'Which prop firm is the cheapest for a $50K account?', a: 'After applying discount codes, firms like Lucid Trading and Tradeify frequently offer the lowest true cost for a $50K eval. Use the comparison table sorted by True Cost to find the current cheapest option.' },
+  { q: 'What is the Eval Pass Simulator?', a: 'The Simulator runs 500 Monte Carlo simulations against real firm rules using your strategy parameters (win rate, risk/reward, risk per trade). It calculates your statistical pass probability before you spend any money.' },
+];
 
-  Object.keys(FIRMS).forEach(k => {
-    const f = FIRMS[k];
-    if (mktPref !== 'all' && f.cat !== mktPref) return;
-    let bestScore = 0, bestSize = null, bestType = null;
-    Object.keys(f.sizes).forEach(sz => {
-      Object.keys(f.sizes[sz]).forEach(t => {
-        const plan = f.sizes[sz][t];
-        const cap = parseFloat(sz);
-        const reqReturnPct = plan.target / cap;
-        const expectancy = (wr * rr) - (1 - wr);
-        const achievability = Math.min(30, Math.max(0, (expectancy / reqReturnPct) * 15));
-        let ddScore = 10;
-        if (ddPref === 'any') ddScore = 20;
-        else if (ddPref === plan.type) ddScore = 25;
-        else if ((ddPref === 'static' && plan.type === 'eod') || (ddPref === 'eod' && plan.type === 'static')) ddScore = 15;
-        const c = parseInt(plan.consistency);
-        let consScore = 15;
-        if (consPref === 'any') consScore = 15;
-        else if (consPref === 'none' && c === 0) consScore = 20;
-        else if (consPref === 'none' && c > 0) consScore = 5;
-        else if (consPref === 'relaxed' && c >= 40) consScore = 20;
-        else if (consPref === 'strict') consScore = 18;
-        const minD = plan.minDays;
-        let daysScore = 10;
-        if (daysPref === 'any') daysScore = 12;
-        else if (daysPref === 'quick' && minD <= 3) daysScore = 15;
-        else if (daysPref === 'moderate' && minD >= 4 && minD <= 7) daysScore = 15;
-        else if (daysPref === 'extended' && minD >= 8) daysScore = 15;
-        else daysScore = 5;
-        const leniency = 10 - (c > 0 ? 3 : 0) - (plan.type === 'trailing' ? 2 : 0) - (minD > 7 ? 2 : 0);
-        const total = achievability + ddScore + consScore + daysScore + leniency;
-        if (total > bestScore) { bestScore = total; bestSize = sz; bestType = t; }
-      });
-    });
-    if (bestSize) results.push({ key: k, firm: f, score: Math.min(100, Math.round(bestScore)), size: bestSize, type: bestType, plan: f.sizes[bestSize][bestType] });
-  });
-
-  results.sort((a, b) => b.score - a.score);
-  document.getElementById('matchCount').textContent = `${results.length} firms matched`;
-  const container = document.getElementById('matchResults');
-  container.innerHTML = '';
-
-  results.forEach((r, idx) => {
-    const barColor = r.score >= 75 ? 'var(--accent-green)' : r.score >= 50 ? 'var(--accent-amber)' : 'var(--accent-red)';
-    const badgeCls = r.score >= 75 ? 'badge-green' : r.score >= 50 ? 'badge-amber' : 'badge-red';
-    const ddLabel = r.plan.type === 'trailing' ? 'Trailing' : r.plan.type === 'eod' ? 'EOD' : 'Static';
-
-    const row = document.createElement('div');
-    row.className = 'match-row';
-    row.innerHTML = `
-      <div style="width:36px;height:36px;border-radius:10px;background:${r.firm.color}18;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:${r.firm.color};flex-shrink:0;">${idx + 1}</div>
-      <div style="flex:1;min-width:0;">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
-          <span style="font-size:14px;font-weight:700;">${r.firm.name}</span>
-          <span class="badge ${badgeCls}">${r.score}% match</span>
-          <span class="badge badge-blue">${r.firm.cat.toUpperCase()}</span>
-          <span class="badge badge-purple">EDGE</span>
-        </div>
-        <div style="display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--text-muted);margin-bottom:8px;">
-          <span>$${parseInt(r.size).toLocaleString()} — ${r.type}</span>
-          <span>Target: <b style="color:var(--text-primary);">$${r.plan.target.toLocaleString()}</b></span>
-          <span>DD: <b style="color:var(--text-primary);">${ddLabel} $${r.plan.maxDD.toLocaleString()}</b></span>
-          <span>Days: <b style="color:var(--text-primary);">${r.plan.minDays}</b></span>
-        </div>
-        <div class="progress-bar-bg"><div class="progress-bar" style="width:${r.score}%;background:${barColor};"></div></div>
+function renderFAQ() {
+  const list = document.getElementById('faqList');
+  if (!list) return;
+  list.innerHTML = '';
+  FAQS.forEach(f => {
+    const item = document.createElement('div');
+    item.className = 'faq-item';
+    item.innerHTML = `
+      <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+        <span>${f.q}</span>
+        <svg class="faq-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
       </div>
-      <div style="text-align:right;flex-shrink:0;">
-        <div class="mono" style="font-size:22px;font-weight:800;color:${r.firm.color};">${r.firm.payout}%</div>
-        <button onclick="loadFirmIntoSim('${r.key}','${r.size}','${r.type}')" style="margin-top:6px;background:${r.firm.color}18;color:${r.firm.color};border:1px solid ${r.firm.color}40;border-radius:8px;padding:6px 14px;font-size:11px;font-weight:600;cursor:pointer;">Simulate →</button>
-      </div>
+      <div class="faq-a">${f.a}</div>
     `;
-    container.appendChild(row);
+    list.appendChild(item);
   });
 }
 
-function loadFirmIntoSim(firmKey, size, type) {
-  document.querySelectorAll('#mainNav .nav-tab').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.querySelector('[data-tab="sim"]').classList.add('active');
-  document.getElementById('tab-sim').classList.add('active');
-  document.getElementById('propFirm').value = firmKey;
-  updateSizes();
-  document.getElementById('propSize').value = size;
-  updateTypes();
-  document.getElementById('propType').value = type;
-  applyPreset();
-}
-
-
 // ============================================================
-// CALCULATORS
+// SIMULATOR ENGINE
 // ============================================================
-function calcPosition() {
-  const bal = parseFloat(document.getElementById('calc-bal').value);
-  const risk = parseFloat(document.getElementById('calc-risk').value) / 100;
-  const sl = parseFloat(document.getElementById('calc-sl').value);
-  const tv = parseFloat(document.getElementById('calc-tv').value);
-  const dollarRisk = bal * risk;
-  const contracts = Math.floor(dollarRisk / (sl * tv));
-  const actualRisk = contracts * sl * tv;
-  document.getElementById('calcResult').style.display = 'block';
-  document.getElementById('calcResult').innerHTML = `
-    <div style="display:flex;flex-direction:column;gap:8px;">
-      <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--text-muted);">Dollar Risk:</span><span class="mono" style="font-weight:600;color:var(--accent-amber);">$${dollarRisk.toFixed(2)}</span></div>
-      <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--text-muted);">Contracts/Lots:</span><span class="mono" style="font-weight:800;font-size:18px;color:var(--accent-green);">${contracts}</span></div>
-      <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--text-muted);">Actual Risk:</span><span class="mono" style="font-weight:600;">$${actualRisk.toFixed(2)} (${(actualRisk/bal*100).toFixed(3)}%)</span></div>
-    </div>`;
+function simulate(capital, wr, rr, riskPct, numTrades, dailyLoss, maxDD, ddType) {
+  let bal = capital, curve = [bal], pnlHist = [], ddFloor = [capital - maxDD];
+  let peak = capital, dayStart = capital, dayPnl = 0;
+  let worstDD = 0, peakDDpct = 0, gp = 0, gl = 0, wins = 0, losses = 0, seq = [];
+  let sumW = 0, sumL = 0, hiWin = 0, winDays = 0, lossDays = 0, days = 0;
+  let failReason = null, totalExec = 0;
+  const baseRisk = capital * riskPct;
+  for (let i = 0; i < numTrades; i++) {
+    if (failReason) break;
+    totalExec++;
+    let pnl = Math.random() <= wr
+      ? baseRisk * rr * (0.94 + Math.random() * 0.12)
+      : -(baseRisk * (0.98 + Math.random() * 0.04));
+    if (pnl > 0) { gp += pnl; sumW += pnl; wins++; seq.push('W'); if (pnl > hiWin) hiWin = pnl; }
+    else { gl += Math.abs(pnl); sumL += Math.abs(pnl); losses++; seq.push('L'); }
+    pnlHist.push(pnl); bal += pnl; curve.push(bal); dayPnl += pnl;
+    if (dayPnl < 0 && Math.abs(dayPnl) >= dailyLoss) failReason = 'DAILY_LOSS';
+    if ((i + 1) % 3 === 0 || i === numTrades - 1) {
+      days++;
+      if (dayPnl > 0) winDays++; else if (dayPnl < 0) lossDays++;
+      if (ddType === 'eod' && bal > dayStart) dayStart = bal;
+      dayPnl = 0;
+    }
+    if (bal > peak) peak = bal;
+    const dd = ddType === 'trailing' ? peak - bal : ddType === 'eod' ? dayStart - bal : capital - bal;
+    ddFloor.push(ddType === 'trailing' ? peak - maxDD : ddType === 'eod' ? dayStart - maxDD : capital - maxDD);
+    if (dd > worstDD) worstDD = dd;
+    if ((peak - bal) / peak > peakDDpct) peakDDpct = (peak - bal) / peak;
+    if (dd >= maxDD) failReason = 'MAX_DD';
+  }
+  return { curve, pnlHist, ddFloor, peakDDpct, worstDD, gp, gl, seq, wins, losses, winDays, lossDays, days, totalExec,
+    avgW: wins === 0 ? 0 : sumW / wins, avgL: losses === 0 ? 0 : sumL / losses, hiWin, failReason };
 }
 
-function calcRoadmap() {
-  const target = parseFloat(document.getElementById('road-target').value);
-  const wr = parseFloat(document.getElementById('road-wr').value) / 100;
-  const avgW = parseFloat(document.getElementById('road-avgw').value);
-  const avgL = parseFloat(document.getElementById('road-avgl').value);
-  const tpd = parseFloat(document.getElementById('road-tpd').value);
-  const expectPerTrade = (wr * avgW) - ((1 - wr) * avgL);
-  const tradesToTarget = expectPerTrade > 0 ? Math.ceil(target / expectPerTrade) : Infinity;
-  const daysToTarget = expectPerTrade > 0 ? Math.ceil(tradesToTarget / tpd) : Infinity;
-  document.getElementById('roadResult').style.display = 'block';
-  document.getElementById('roadResult').innerHTML = `
-    <div style="display:flex;flex-direction:column;gap:8px;">
-      <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--text-muted);">Expectancy/Trade:</span><span class="mono" style="font-weight:600;color:${expectPerTrade>0?'var(--accent-green)':'var(--accent-red)'};">$${expectPerTrade.toFixed(2)}</span></div>
-      <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--text-muted);">Trades Needed:</span><span class="mono" style="font-weight:800;font-size:18px;color:var(--accent-blue);">${expectPerTrade>0?tradesToTarget:'∞'}</span></div>
-      <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--text-muted);">Est. Days:</span><span class="mono" style="font-weight:800;font-size:18px;color:var(--accent-purple);">${expectPerTrade>0?daysToTarget:'∞'}</span></div>
-      <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--text-muted);">Daily Edge:</span><span class="mono" style="font-weight:600;">$${(expectPerTrade*tpd).toFixed(2)}</span></div>
-    </div>`;
+let chartInstances = {};
+function destroyChart(id) { if (chartInstances[id]) { chartInstances[id].destroy(); delete chartInstances[id]; } }
+
+function initSimFirmDropdown() {
+  const sel = document.getElementById('s-firm');
+  if (!sel || sel.options.length > 1) return;
+  sel.innerHTML = '<option value="custom">── Custom / Manual ──</option>';
+  const fg = document.createElement('optgroup'); fg.label = 'FUTURES';
+  const xg = document.createElement('optgroup'); xg.label = 'FOREX / CFD';
+  FIRMS.forEach(f => {
+    const o = document.createElement('option'); o.value = f.key; o.textContent = f.name;
+    f.cat === 'futures' ? fg.appendChild(o) : xg.appendChild(o);
+  });
+  sel.appendChild(fg); sel.appendChild(xg);
+  const tf = document.getElementById('t-firm');
+  if (tf && !tf.options.length) {
+    FIRMS.forEach(f => { const o = document.createElement('option'); o.value = f.key; o.textContent = f.name; tf.appendChild(o); });
+  }
 }
 
-function calcPayout() {
-  const fee = parseFloat(document.getElementById('pay-fee').value);
-  const funded = parseFloat(document.getElementById('pay-funded').value);
-  const profitPct = parseFloat(document.getElementById('pay-profit').value) / 100;
-  const split = parseFloat(document.getElementById('pay-split').value) / 100;
-  const months = parseInt(document.getElementById('pay-months').value);
-  const monthlyProfit = funded * profitPct;
-  const monthlyPayout = monthlyProfit * split;
-  const totalPayout = monthlyPayout * months;
-  const roi = ((totalPayout - fee) / fee * 100);
-  const breakeven = fee / monthlyPayout;
-  document.getElementById('payResult').style.display = 'block';
-  document.getElementById('payResult').innerHTML = `
-    <div style="display:flex;flex-direction:column;gap:8px;">
-      <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--text-muted);">Monthly Payout:</span><span class="mono" style="font-weight:800;font-size:18px;color:var(--accent-green);">$${monthlyPayout.toLocaleString()}</span></div>
-      <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--text-muted);">${months}-Mo Total:</span><span class="mono" style="font-weight:700;color:var(--accent-blue);">$${totalPayout.toLocaleString()}</span></div>
-      <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--text-muted);">ROI:</span><span class="mono" style="font-weight:700;color:var(--accent-purple);">${roi.toFixed(0)}%</span></div>
-      <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--text-muted);">Breakeven:</span><span class="mono" style="font-weight:600;">${breakeven.toFixed(1)} months</span></div>
-      <p style="font-size:11px;color:var(--text-muted);margin-top:6px;border-top:1px solid var(--border-primary);padding-top:8px;">Use code <b style="color:var(--accent-purple);">EDGE</b> to lower the eval fee and boost ROI.</p>
-    </div>`;
+function simUpdateSizes() {
+  const k = document.getElementById('s-firm').value;
+  const sel = document.getElementById('s-size');
+  sel.innerHTML = '';
+  const firm = FIRMS.find(f => f.key === k);
+  if (!firm) { sel.innerHTML = '<option value="custom">Manual</option>'; simUpdateTypes(); return; }
+  const sizes = [...new Set(firm.plans.map(p => p.size))];
+  sizes.forEach(sz => { const o = document.createElement('option'); o.value = sz; o.textContent = '$' + sz.toLocaleString(); sel.appendChild(o); });
+  simUpdateTypes();
+}
+
+function simUpdateTypes() {
+  const k = document.getElementById('s-firm').value;
+  const sz = parseInt(document.getElementById('s-size').value);
+  const sel = document.getElementById('s-type');
+  sel.innerHTML = '';
+  const firm = FIRMS.find(f => f.key === k);
+  if (!firm) { sel.innerHTML = '<option value="custom">Manual</option>'; return; }
+  const plans = firm.plans.filter(p => p.size === sz);
+  plans.forEach(p => { const o = document.createElement('option'); o.value = p.name; o.textContent = p.name; sel.appendChild(o); });
+  simApplyPreset();
+}
+
+function simApplyPreset() {
+  const k = document.getElementById('s-firm').value;
+  const sz = parseInt(document.getElementById('s-size').value);
+  const t = document.getElementById('s-type').value;
+  const firm = FIRMS.find(f => f.key === k);
+  if (!firm) return;
+  const plan = firm.plans.find(p => p.size === sz && p.name === t);
+  if (!plan) return;
+  document.getElementById('s-capital').value = sz;
+  document.getElementById('s-target').value = plan.target;
+  document.getElementById('s-maxdd').value = plan.dd || Math.round(sz * 0.04);
+  document.getElementById('s-daily').value = plan.daily || 99999;
+  document.getElementById('s-ddtype').value = plan.ddType === 'EOD' ? 'eod' : plan.ddType === 'Intraday Trail' ? 'trailing' : 'static';
+  document.getElementById('s-mindays').value = plan.minDays;
+  runSim();
+}
+
+function simBreak() {
+  document.getElementById('s-firm').value = 'custom';
+}
+
+function runSim() {
+  const capital = parseFloat(document.getElementById('s-capital').value) || 50000;
+  const wr = parseFloat(document.getElementById('s-wr').value) / 100;
+  const rr = parseFloat(document.getElementById('s-rr').value);
+  const riskPct = parseFloat(document.getElementById('s-risk').value) / 100;
+  const numTrades = parseInt(document.getElementById('s-trades').value);
+  const target = parseFloat(document.getElementById('s-target').value) || 0;
+  const maxDD = parseFloat(document.getElementById('s-maxdd').value) || 1;
+  const daily = parseFloat(document.getElementById('s-daily').value) || 99999;
+  const ddType = document.getElementById('s-ddtype').value;
+  const consPct = parseFloat(document.getElementById('s-cons').value);
+  const minDays = parseInt(document.getElementById('s-mindays').value) || 0;
+
+  const path = simulate(capital, wr, rr, riskPct, numTrades, daily, maxDD, ddType);
+  const netPnL = path.curve[path.curve.length - 1] - capital;
+  const pf = path.gl === 0 ? '∞' : (path.gp / path.gl).toFixed(2);
+  const expectancy = (wr * (capital * riskPct * rr)) - ((1 - wr) * (capital * riskPct));
+
+  const g = (id, val, color) => { const el = document.getElementById(id); if (el) { el.textContent = val; if (color) el.style.color = color; } };
+  g('sm-equity', (netPnL >= 0 ? '+$' : '-$') + Math.abs(netPnL).toLocaleString(undefined, {maximumFractionDigits:0}), netPnL >= 0 ? '#24bb78' : '#ef4444');
+  g('sm-expect', '$' + expectancy.toLocaleString(undefined, {maximumFractionDigits:0}));
+  g('sm-dd', (path.peakDDpct * 100).toFixed(2) + '%');
+  g('sm-pf', pf, parseFloat(pf) > 1 ? '#24bb78' : '#ef4444');
+  g('sm-wr', ((path.wins / path.totalExec) * 100).toFixed(1) + '%');
+  g('sm-avgwl', '$' + Math.round(path.avgW) + ' / $' + Math.round(path.avgL));
+  g('sm-wdays', path.winDays + ' / ' + path.days);
+  g('sm-hiwin', '$' + Math.round(path.hiWin).toLocaleString());
+  g('sm-wins', path.wins); g('sm-losses', path.losses);
+
+  const seq = document.getElementById('simSeqRow');
+  if (seq) { seq.innerHTML = ''; path.seq.forEach(s => { const b = document.createElement('div'); b.className = 'seq-block'; b.style.background = s === 'W' ? '#24bb78' : '#ef4444'; b.textContent = s; seq.appendChild(b); }); }
+
+  const consPassed = consPct <= 0 || netPnL <= 0 || (path.hiWin / netPnL * 100) <= consPct;
+  const daysPassed = path.days >= minDays;
+  const targetMet = netPnL >= target;
+
+  const auditBox = document.getElementById('simAuditBox');
+  if (auditBox) {
+    if (path.failReason === 'MAX_DD') auditBox.innerHTML = `<div><span style="font-size:12px;font-weight:700;color:#ef4444;">BREACHED — Max Drawdown</span><p style="font-size:11px;color:#989898;margin-top:2px;">Account exceeded drawdown limit.</p></div><div style="width:28px;height:28px;border-radius:50%;background:rgba(239,68,68,0.12);display:flex;align-items:center;justify-content:center;color:#ef4444;font-weight:700;">✕</div>`;
+    else if (path.failReason === 'DAILY_LOSS') auditBox.innerHTML = `<div><span style="font-size:12px;font-weight:700;color:#ef4444;">BREACHED — Daily Loss</span><p style="font-size:11px;color:#989898;margin-top:2px;">Daily cap exceeded.</p></div><div style="width:28px;height:28px;border-radius:50%;background:rgba(239,68,68,0.12);display:flex;align-items:center;justify-content:center;color:#ef4444;font-weight:700;">✕</div>`;
+    else if (!targetMet) auditBox.innerHTML = `<div><span style="font-size:12px;font-weight:700;color:#f59e0b;">Target Not Reached</span><p style="font-size:11px;color:#989898;margin-top:2px;">Rules clean but target not met.</p></div><div style="width:28px;height:28px;border-radius:50%;background:rgba(245,158,11,0.12);display:flex;align-items:center;justify-content:center;color:#f59e0b;font-weight:700;">!</div>`;
+    else if (!consPassed) auditBox.innerHTML = `<div><span style="font-size:12px;font-weight:700;color:#f59e0b;">Consistency Violation</span></div><div style="width:28px;height:28px;border-radius:50%;background:rgba(245,158,11,0.12);display:flex;align-items:center;justify-content:center;color:#f59e0b;font-weight:700;">!</div>`;
+    else if (!daysPassed) auditBox.innerHTML = `<div><span style="font-size:12px;font-weight:700;color:#f59e0b;">Min Days Not Met</span></div><div style="width:28px;height:28px;border-radius:50%;background:rgba(245,158,11,0.12);display:flex;align-items:center;justify-content:center;color:#f59e0b;font-weight:700;">!</div>`;
+    else auditBox.innerHTML = `<div><span style="font-size:12px;font-weight:700;color:#24bb78;">✓ EVALUATION PASSED</span><p style="font-size:11px;color:#989898;margin-top:2px;">All compliance rules verified.</p></div><div style="width:28px;height:28px;border-radius:50%;background:rgba(36,187,120,0.12);display:flex;align-items:center;justify-content:center;color:#24bb78;font-weight:700;">✓</div>`;
+  }
+
+  g('sa-target', `$${Math.round(netPnL).toLocaleString()} / $${target.toLocaleString()}`, targetMet ? '#24bb78' : '#ef4444');
+  g('sa-dd', `$${Math.round(path.worstDD).toLocaleString()} / $${maxDD.toLocaleString()}`, !path.failReason ? '#24bb78' : '#ef4444');
+  g('sa-cons', netPnL > 0 && consPct > 0 ? (path.hiWin / netPnL * 100).toFixed(1) + '%' : 'N/A', consPassed ? '#24bb78' : '#f59e0b');
+  g('sa-daily', path.failReason !== 'DAILY_LOSS' ? 'Passed' : 'VIOLATED', path.failReason !== 'DAILY_LOSS' ? '#24bb78' : '#ef4444');
+  g('sa-days', `${path.days} / ${minDays} required`, daysPassed ? '#24bb78' : '#f59e0b');
+
+  let passCount = 0;
+  for (let i = 0; i < 500; i++) {
+    const p2 = simulate(capital, wr, rr, riskPct, numTrades, daily, maxDD, ddType);
+    const n2 = p2.curve[p2.curve.length - 1] - capital;
+    const c2 = consPct <= 0 || n2 <= 0 || (p2.hiWin / n2 * 100) <= consPct;
+    if (!p2.failReason && n2 >= target && c2 && p2.days >= minDays) passCount++;
+  }
+  const pct = (passCount / 500 * 100).toFixed(1);
+  g('simPassProb', pct + '%', pct >= 60 ? '#24bb78' : pct >= 35 ? '#f59e0b' : '#ef4444');
+  const bar = document.getElementById('simProbBar'); if (bar) { bar.style.width = pct + '%'; bar.style.background = pct >= 60 ? '#24bb78' : pct >= 35 ? '#f59e0b' : '#ef4444'; }
+  g('simProbLabel', pct >= 60 ? 'Strong pass probability — strategy aligns well with rules.' : pct >= 35 ? 'Moderate — consider adjusting risk or win rate.' : 'Low pass rate — strategy frequently violates rules.');
+
+  renderSimCharts(path, numTrades, capital, riskPct, target, maxDD, ddType, wr, rr);
+}
+
+function renderSimCharts(path, numTrades, capital, riskPct, target, maxDD, ddType, wr, rr) {
+  const gc = 'rgba(255,255,255,0.04)';
+  Chart.defaults.color = '#989898'; Chart.defaults.font.family = "'JetBrains Mono',monospace"; Chart.defaults.font.size = 10;
+
+  destroyChart('chartEquity');
+  chartInstances['chartEquity'] = new Chart(document.getElementById('chartEquity'), {
+    type: 'line',
+    data: { labels: path.curve.map((_,i)=>i), datasets: [
+      { label: 'Balance', data: path.curve, borderColor: '#3b82f6', borderWidth: 2, fill: false, pointRadius: 0, tension: 0.2 },
+      { label: 'DD Floor', data: path.ddFloor, borderColor: '#ef4444', borderWidth: 1.5, fill: false, pointRadius: 0, borderDash: [4,2] },
+      { label: 'Target', data: new Array(path.curve.length).fill(capital + target), borderColor: '#24bb78', borderWidth: 1.5, borderDash: [6,4], fill: false, pointRadius: 0 }
+    ]},
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'top', labels: { boxWidth: 8, font: { size: 9 } } } }, scales: { x: { display: false }, y: { grid: { color: gc } } } }
+  });
+
+  destroyChart('chartMC');
+  const envs = [];
+  for (let i = 0; i < 150; i++) { const p = simulate(capital, wr, rr, riskPct, numTrades, 99999, maxDD * 2, ddType); envs.push({ data: p.curve, borderColor: 'rgba(59,130,246,0.07)', borderWidth: 1, fill: false, pointRadius: 0, tension: 0.1 }); }
+  chartInstances['chartMC'] = new Chart(document.getElementById('chartMC'), {
+    type: 'line', data: { labels: Array.from({length: numTrades+1},(_,i)=>i), datasets: envs },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: gc } } }, animation: { duration: 0 } }
+  });
+
+  destroyChart('chartDist');
+  chartInstances['chartDist'] = new Chart(document.getElementById('chartDist'), {
+    data: { labels: path.pnlHist.map((_,i)=>i+1), datasets: [
+      { type: 'bar', data: path.pnlHist, backgroundColor: path.pnlHist.map(v => v >= 0 ? 'rgba(36,187,120,0.6)' : 'rgba(239,68,68,0.6)'), borderRadius: 2, barPercentage: 0.6, yAxisID: 'yL' },
+      { type: 'line', data: path.curve.slice(1), borderColor: '#8b5cf6', borderWidth: 1.5, fill: false, pointRadius: 0, yAxisID: 'yR' }
+    ]},
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, yL: { position: 'left', grid: { color: gc } }, yR: { position: 'right', grid: { display: false } } } }
+  });
+
+  const rBrackets = ['<-2R', '-2→-1R', '-1→0', '0→1R', '1→2R', '2→3R', '>3R'];
+  const counts = new Array(7).fill(0);
+  const base = capital * riskPct;
+  path.pnlHist.forEach(v => { const r = v / base; if (r < -2) counts[0]++; else if (r < -1) counts[1]++; else if (r < 0) counts[2]++; else if (r < 1) counts[3]++; else if (r < 2) counts[4]++; else if (r < 3) counts[5]++; else counts[6]++; });
+  destroyChart('chartHist');
+  chartInstances['chartHist'] = new Chart(document.getElementById('chartHist'), {
+    data: { labels: rBrackets, datasets: [{ type: 'bar', data: counts, backgroundColor: counts.map((_,i) => i < 3 ? 'rgba(239,68,68,0.65)' : 'rgba(36,187,120,0.65)'), borderRadius: 4, barPercentage: 0.7 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { grid: { color: gc } } } }
+  });
 }
 
 
 // ============================================================
 // EVAL TRACKER
 // ============================================================
-let evals = JSON.parse(localStorage.getItem('pfe_evals') || '[]');
 function saveEvals() { localStorage.setItem('pfe_evals', JSON.stringify(evals)); }
 
-function addEval() {
-  const firmKey = document.getElementById('track-firm').value;
-  const firm = FIRMS[firmKey];
+function addTrackerEval() {
+  const firmKey = document.getElementById('t-firm').value;
+  const firm = FIRMS.find(f => f.key === firmKey);
   evals.push({
-    id: Date.now(), firm: firm.name, firmKey, color: firm.color,
-    size: parseFloat(document.getElementById('track-size').value),
-    target: parseFloat(document.getElementById('track-target').value),
-    maxDD: parseFloat(document.getElementById('track-dd').value),
-    pnl: parseFloat(document.getElementById('track-pnl').value),
-    days: parseInt(document.getElementById('track-days').value),
-    status: document.getElementById('track-status').value,
+    id: Date.now(), firm: firm ? firm.name : firmKey, firmKey,
+    color: firm ? firm.color : '#24bb78',
+    size: parseFloat(document.getElementById('t-size').value),
+    target: parseFloat(document.getElementById('t-target').value),
+    maxDD: parseFloat(document.getElementById('t-dd').value),
+    pnl: parseFloat(document.getElementById('t-pnl').value),
+    days: parseInt(document.getElementById('t-days').value),
+    status: document.getElementById('t-status').value,
     date: new Date().toISOString().split('T')[0]
   });
   saveEvals(); renderTracker();
 }
 
-function updateEvalPnl(id, val) { const ev = evals.find(e => e.id === id); if (ev) { ev.pnl = parseFloat(val)||0; saveEvals(); renderTracker(); } }
-function updateEvalDays(id, val) { const ev = evals.find(e => e.id === id); if (ev) { ev.days = parseInt(val)||0; saveEvals(); renderTracker(); } }
-function updateEvalStatus(id, val) { const ev = evals.find(e => e.id === id); if (ev) { ev.status = val; saveEvals(); renderTracker(); } }
+function updateEvalField(id, field, val) {
+  const ev = evals.find(e => e.id === id);
+  if (ev) { ev[field] = field === 'status' ? val : parseFloat(val) || 0; saveEvals(); renderTracker(); }
+}
+
 function removeEval(id) { evals = evals.filter(e => e.id !== id); saveEvals(); renderTracker(); }
-function clearEvals() { if (confirm('Clear all evaluations?')) { evals = []; saveEvals(); renderTracker(); } }
+function clearAllEvals() { if (confirm('Clear all evaluations?')) { evals = []; saveEvals(); renderTracker(); } }
 
 function renderTracker() {
+  initSimFirmDropdown();
   const total = evals.length;
   const passed = evals.filter(e => e.status === 'passed').length;
   const failed = evals.filter(e => e.status === 'failed').length;
   const active = evals.filter(e => e.status === 'active').length;
-  document.getElementById('ts-total').textContent = total;
-  document.getElementById('ts-passed').textContent = passed;
-  document.getElementById('ts-failed').textContent = failed;
-  document.getElementById('ts-active').textContent = active;
-  document.getElementById('ts-rate').textContent = (passed + failed) > 0 ? ((passed / (passed + failed)) * 100).toFixed(0) + '%' : '—';
-
+  const g = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  g('ts-total', total); g('ts-passed', passed); g('ts-failed', failed); g('ts-active', active);
+  g('ts-rate', (passed + failed) > 0 ? ((passed / (passed + failed)) * 100).toFixed(0) + '%' : '—');
   const list = document.getElementById('trackerList');
+  if (!list) return;
   if (!evals.length) {
-    list.innerHTML = '<div class="card card-p" style="text-align:center;color:var(--text-muted);padding:48px;"><i class="fas fa-chart-line" style="font-size:32px;margin-bottom:12px;opacity:0.3;"></i><p>No evaluations tracked yet.</p></div>';
+    list.innerHTML = '<div style="background:#141414;border:1px solid #212121;border-radius:12px;padding:48px;text-align:center;color:#989898;">No evaluations tracked yet. Add one from the left panel.</div>';
     return;
   }
   list.innerHTML = '';
   evals.forEach(ev => {
     const progress = ev.target > 0 ? Math.min(100, Math.max(0, (ev.pnl / ev.target) * 100)) : 0;
     const ddUsed = ev.pnl < 0 ? Math.min(100, (Math.abs(ev.pnl) / ev.maxDD) * 100) : 0;
-    const statusBadge = ev.status === 'passed' ? 'badge-green' : ev.status === 'failed' ? 'badge-red' : 'badge-blue';
-
-    const row = document.createElement('div');
-    row.className = 'tracker-item';
-    row.innerHTML = `
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+    const statusColor = ev.status === 'passed' ? '#24bb78' : ev.status === 'failed' ? '#ef4444' : '#3b82f6';
+    const statusBg = ev.status === 'passed' ? 'rgba(36,187,120,0.1)' : ev.status === 'failed' ? 'rgba(239,68,68,0.1)' : 'rgba(59,130,246,0.1)';
+    const item = document.createElement('div');
+    item.className = 'tracker-item';
+    item.innerHTML = `
+      <div class="ti-header">
         <div style="display:flex;align-items:center;gap:10px;">
-          <div style="width:32px;height:32px;border-radius:8px;background:${ev.color}18;display:flex;align-items:center;justify-content:center;"><span style="font-size:13px;font-weight:800;color:${ev.color};">${ev.firm.charAt(0)}</span></div>
+          <div class="firm-logo" style="--fc:${ev.color};width:34px;height:34px;font-size:13px;">${ev.firm.charAt(0)}</div>
           <div>
             <span style="font-size:14px;font-weight:700;">${ev.firm}</span>
-            <span class="mono" style="font-size:11px;color:var(--text-muted);margin-left:8px;">$${ev.size.toLocaleString()}</span>
+            <span class="mono" style="font-size:11px;color:#989898;margin-left:8px;">$${ev.size.toLocaleString()}</span>
           </div>
-          <span class="badge ${statusBadge}">${ev.status.toUpperCase()}</span>
+          <span style="background:${statusBg};color:${statusColor};border-radius:999px;padding:3px 10px;font-size:11px;font-weight:700;text-transform:uppercase;">${ev.status}</span>
         </div>
-        <div style="display:flex;gap:6px;">
-          <select onchange="updateEvalStatus(${ev.id}, this.value)" class="input" style="width:auto;padding:4px 8px;font-size:10px;">
+        <div style="display:flex;gap:6px;align-items:center;">
+          <select onchange="updateEvalField(${ev.id},'status',this.value)" style="background:#1b1b1b;border:1px solid #212121;border-radius:7px;color:#f5f5f5;font-size:11px;padding:4px 8px;">
             <option value="active" ${ev.status==='active'?'selected':''}>Active</option>
             <option value="passed" ${ev.status==='passed'?'selected':''}>Passed</option>
             <option value="failed" ${ev.status==='failed'?'selected':''}>Failed</option>
           </select>
-          <button onclick="removeEval(${ev.id})" style="background:var(--red-bg);color:var(--accent-red);border:none;border-radius:6px;padding:4px 10px;font-size:10px;font-weight:700;cursor:pointer;"><i class="fas fa-trash"></i></button>
+          <button onclick="removeEval(${ev.id})" style="background:rgba(239,68,68,0.1);color:#ef4444;border:none;border-radius:7px;padding:5px 10px;font-size:10px;font-weight:700;cursor:pointer;">✕</button>
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:12px;">
-        <div><span style="font-size:10px;color:var(--text-muted);display:block;margin-bottom:3px;">PnL</span><input type="number" value="${ev.pnl}" onchange="updateEvalPnl(${ev.id},this.value)" class="input" style="padding:6px 8px;font-size:11px;"></div>
-        <div><span style="font-size:10px;color:var(--text-muted);display:block;margin-bottom:3px;">Days</span><input type="number" value="${ev.days}" onchange="updateEvalDays(${ev.id},this.value)" class="input" style="padding:6px 8px;font-size:11px;"></div>
-        <div><span style="font-size:10px;color:var(--text-muted);display:block;margin-bottom:3px;">Target</span><span class="mono" style="font-size:14px;font-weight:700;color:var(--accent-green);">$${ev.target.toLocaleString()}</span></div>
-        <div><span style="font-size:10px;color:var(--text-muted);display:block;margin-bottom:3px;">Max DD</span><span class="mono" style="font-size:14px;font-weight:700;color:var(--accent-red);">$${ev.maxDD.toLocaleString()}</span></div>
+        <div><span style="font-size:10px;color:#989898;display:block;margin-bottom:3px;">PnL</span><input type="number" value="${ev.pnl}" onchange="updateEvalField(${ev.id},'pnl',this.value)" class="sim-input" style="padding:6px 8px;font-size:11px;"></div>
+        <div><span style="font-size:10px;color:#989898;display:block;margin-bottom:3px;">Days</span><input type="number" value="${ev.days}" onchange="updateEvalField(${ev.id},'days',this.value)" class="sim-input" style="padding:6px 8px;font-size:11px;"></div>
+        <div><span style="font-size:10px;color:#989898;display:block;margin-bottom:3px;">Target</span><span class="mono" style="font-size:15px;font-weight:700;color:#24bb78;">$${ev.target.toLocaleString()}</span></div>
+        <div><span style="font-size:10px;color:#989898;display:block;margin-bottom:3px;">Max DD</span><span class="mono" style="font-size:15px;font-weight:700;color:#ef4444;">$${ev.maxDD.toLocaleString()}</span></div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
         <div>
-          <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:10px;color:var(--text-muted);">Target</span><span class="mono" style="font-size:10px;color:var(--accent-green);">${progress.toFixed(1)}%</span></div>
-          <div class="progress-bar-bg"><div class="progress-bar" style="width:${progress}%;background:var(--accent-green);"></div></div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:10px;color:#989898;">Target Progress</span><span class="mono" style="font-size:10px;color:#24bb78;">${progress.toFixed(1)}%</span></div>
+          <div class="ti-bar-bg"><div class="ti-bar" style="width:${progress}%;background:#24bb78;"></div></div>
         </div>
         <div>
-          <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:10px;color:var(--text-muted);">DD Used</span><span class="mono" style="font-size:10px;color:var(--accent-red);">${ddUsed.toFixed(1)}%</span></div>
-          <div class="progress-bar-bg"><div class="progress-bar" style="width:${ddUsed}%;background:var(--accent-red);"></div></div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:10px;color:#989898;">DD Used</span><span class="mono" style="font-size:10px;color:#ef4444;">${ddUsed.toFixed(1)}%</span></div>
+          <div class="ti-bar-bg"><div class="ti-bar" style="width:${ddUsed}%;background:#ef4444;"></div></div>
         </div>
       </div>
-      <div style="margin-top:8px;font-size:10px;color:var(--text-muted);">Started: ${ev.date}</div>
+      <div style="margin-top:8px;font-size:10px;color:#989898;">Started: ${ev.date}</div>
     `;
-    list.appendChild(row);
+    list.appendChild(item);
   });
 }
 
+// ============================================================
+// INIT FIRM FILTER DROPDOWN
+// ============================================================
+function initFirmFilterDropdown() {
+  const sel = document.getElementById('firmFilter');
+  if (!sel) return;
+  FIRMS.forEach(f => {
+    const o = document.createElement('option');
+    o.value = f.key; o.textContent = f.name;
+    sel.appendChild(o);
+  });
+}
 
 // ============================================================
 // BOOT
 // ============================================================
-window.addEventListener('DOMContentLoaded', () => {
-  initFirmDropdown();
+document.addEventListener('DOMContentLoaded', () => {
+  initFirmFilterDropdown();
+  initSimFirmDropdown();
+  renderTable();
+  renderFAQ();
   renderTracker();
 });

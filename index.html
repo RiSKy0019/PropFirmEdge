@@ -1,353 +1,566 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PropFirmEdge — Prop Firm Comparison, Discount Codes & Tools</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+<title>PropFirmEdge — Prop Firm Comparison, Discount Codes & Eval Simulator</title>
+<meta name="description" content="Compare prop firms by challenge fee, true cost, drawdown rules and payout terms. Use code EDGE for exclusive discounts.">
+<meta name="theme-color" content="#111111">
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-<!-- HEADER -->
-<header class="header">
-  <div class="header-inner">
-    <div class="logo">
-      <div class="logo-icon">PE</div>
-      <span class="logo-text">PropFirmEdge</span>
-      <span class="logo-version">v3.0</span>
+<!-- TOP DEAL STRIP -->
+<div class="top-strip" id="topStrip">
+  <div class="strip-inner sm-hidden">
+    <div class="strip-content">
+      <span class="strip-chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></svg>Best Deals</span>
+      <div class="strip-deal"><span class="strip-dot"></span><span class="strip-brand">Lucid Trading</span><span class="strip-off">40% Off</span><a class="strip-cta" href="https://lucidtrading.com" target="_blank" rel="noopener">50K = $84 | Buy Now</a></div>
+      <div class="strip-deal"><span class="strip-dot"></span><span class="strip-brand">Tradeify</span><span class="strip-off">40% Off No Activation</span><a class="strip-cta" href="https://tradeify.co" target="_blank" rel="noopener">Buy Now</a></div>
+      <div class="strip-deal"><span class="strip-dot"></span><span class="strip-brand">MyFundedFutures</span><span class="strip-off">12% Off</span><a class="strip-cta" href="https://myfundedfutures.com" target="_blank" rel="noopener">Buy Now</a></div>
     </div>
-    <nav class="nav-tabs" id="mainNav">
-      <button class="nav-tab active" data-tab="sim"><i class="fas fa-bolt" style="margin-right:4px;"></i> Simulator</button>
-      <button class="nav-tab" data-tab="firms"><i class="fas fa-building" style="margin-right:4px;"></i> Firms</button>
-      <button class="nav-tab" data-tab="match"><i class="fas fa-crosshairs" style="margin-right:4px;"></i> Matcher</button>
-      <button class="nav-tab" data-tab="calc"><i class="fas fa-calculator" style="margin-right:4px;"></i> Tools</button>
-      <button class="nav-tab" data-tab="tracker"><i class="fas fa-chart-line" style="margin-right:4px;"></i> Tracker</button>
-    </nav>
-    <div style="display:flex; align-items:center; gap:14px;">
-      <div class="theme-toggle" id="themeToggle" title="Toggle light/dark mode">
-        <div class="theme-toggle-knob"><i class="fas fa-moon" style="font-size:9px;"></i></div>
-      </div>
-      <div class="badge badge-green pulse" style="font-size:10px;">
-        <i class="fas fa-circle" style="font-size:6px;"></i> Live
-      </div>
+    <button class="strip-close" onclick="document.getElementById('topStrip').style.display='none'" aria-label="Close">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <!-- Mobile marquee -->
+  <div class="strip-marquee-wrap sm-shown">
+    <div class="strip-marquee-track">
+      <span class="strip-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></svg>Best Deals</span>
+      <span class="strip-dot"></span><span class="strip-brand">Lucid Trading</span><span class="strip-off">40% Off</span><a class="strip-cta" href="https://lucidtrading.com" target="_blank" rel="noopener">50K = $84</a>
+      <span class="strip-dot"></span><span class="strip-brand">Tradeify</span><span class="strip-off">40% Off</span><a class="strip-cta" href="https://tradeify.co" target="_blank" rel="noopener">Buy Now</a>
+      <!-- duplicate for seamless loop -->
+      <span class="strip-chip" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></svg>Best Deals</span>
+      <span class="strip-dot"></span><span class="strip-brand">Lucid Trading</span><span class="strip-off">40% Off</span><a class="strip-cta" href="https://lucidtrading.com" target="_blank" rel="noopener">50K = $84</a>
+      <span class="strip-dot"></span><span class="strip-brand">Tradeify</span><span class="strip-off">40% Off</span><a class="strip-cta" href="https://tradeify.co" target="_blank" rel="noopener">Buy Now</a>
     </div>
   </div>
-</header>
+</div>
 
-<!-- MAIN -->
-<main class="main-content">
-
-<!-- CODE BANNER -->
-<div class="hero-promo" id="heroBanner">
-  <div style="position:relative;z-index:1;">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
-      <span style="font-size:24px;">🎁</span>
-      <h2 style="font-size:20px;font-weight:800;">Save on Every Evaluation</h2>
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-inner">
+    <a class="nav-logo" href="#">
+      <div class="nav-logo-icon">PE</div>
+      <span>PropFirmEdge</span>
+    </a>
+    <div class="nav-center-links">
+      <a class="nav-link active" href="#" onclick="showPage('home',this)">Home</a>
+      <a class="nav-link" href="#" onclick="showPage('compare',this)">Compare</a>
+      <a class="nav-link" href="#" onclick="showPage('simulator',this)">Simulator</a>
+      <a class="nav-link" href="#" onclick="showPage('tracker',this)">Tracker</a>
     </div>
-    <p style="font-size:14px;opacity:0.85;margin-bottom:16px;max-width:500px;">Use our exclusive discount code at checkout to save 10-80% on prop firm challenges. Verified and updated weekly.</p>
-    <div style="display:inline-flex;align-items:center;gap:12px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:10px;padding:10px 20px;">
-      <span style="font-size:12px;opacity:0.8;">Discount Code:</span>
-      <span class="mono" style="font-size:22px;font-weight:800;letter-spacing:0.15em;">EDGE</span>
-      <button onclick="navigator.clipboard.writeText('EDGE')" style="background:rgba(255,255,255,0.2);border:none;border-radius:6px;padding:6px 10px;color:#fff;cursor:pointer;font-size:11px;font-weight:600;">
-        <i class="fas fa-copy"></i> Copy
+    <div class="nav-right">
+      <button class="code-widget" onclick="copyCode()" title="Click to copy code: EDGE" aria-label="Copy code EDGE">
+        <span class="code-left">
+          <span class="code-label">Use code:</span>
+          <span class="code-value">EDGE</span>
+        </span>
+        <span class="code-copy">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+        </span>
+      </button>
+      <button class="nav-hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
       </button>
     </div>
   </div>
-</div>
+  <!-- Mobile menu -->
+  <div class="mobile-menu" id="mobileMenu">
+    <a class="mobile-link" href="#" onclick="showPage('home',null);toggleMobileMenu()">Home</a>
+    <a class="mobile-link" href="#" onclick="showPage('compare',null);toggleMobileMenu()">Compare</a>
+    <a class="mobile-link" href="#" onclick="showPage('simulator',null);toggleMobileMenu()">Simulator</a>
+    <a class="mobile-link" href="#" onclick="showPage('tracker',null);toggleMobileMenu()">Tracker</a>
+  </div>
+</nav>
 
-<!-- SECTIONS -->
 
-<!-- TAB: SIMULATOR -->
-<div id="tab-sim" class="section active fade-in">
-<div style="display:grid;grid-template-columns:380px 1fr;gap:24px;">
-  <!-- Sim Left -->
-  <div style="display:flex;flex-direction:column;gap:16px;">
-    <div class="card card-p">
-      <h3 style="font-size:14px;font-weight:700;margin-bottom:4px;">Strategy Profile</h3>
-      <p style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">Define your edge for Monte Carlo simulation.</p>
-      <div class="grid-2">
-        <div><span class="input-label">Win Rate %</span><input type="number" id="winRate" value="65" class="input"></div>
-        <div><span class="input-label">Risk : Reward</span><input type="number" id="rrRatio" value="1.5" step="0.1" class="input"></div>
-        <div><span class="input-label">Risk / Trade %</span><input type="number" id="riskPct" value="0.3" step="0.05" class="input"></div>
-        <div><span class="input-label">Total Trades</span><input type="number" id="numTrades" value="100" class="input"></div>
-      </div>
-    </div>
-    <div class="card card-p">
-      <h3 style="font-size:14px;font-weight:700;margin-bottom:4px;">Evaluation Rules</h3>
-      <p style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">Select a firm preset or configure manually.</p>
-      <div style="margin-bottom:12px;"><span class="input-label">Prop Firm</span><select id="propFirm" onchange="updateSizes()" class="input"></select></div>
-      <div class="grid-2" style="margin-bottom:12px;">
-        <div><span class="input-label">Account Size</span><select id="propSize" onchange="updateTypes()" class="input"><option value="custom">Manual</option></select></div>
-        <div><span class="input-label">Challenge Type</span><select id="propType" onchange="applyPreset()" class="input"><option value="custom">Manual</option></select></div>
-      </div>
-      <div style="border-top:1px solid var(--border-primary);padding-top:14px;display:flex;flex-direction:column;gap:10px;">
-        <div><span class="input-label">Starting Capital ($)</span><input type="number" id="capital" value="50000" oninput="breakToCustom()" class="input"></div>
-        <div class="grid-2">
-          <div><span class="input-label">Profit Target</span><input type="number" id="propTarget" value="3000" oninput="breakToCustom()" class="input"></div>
-          <div><span class="input-label">Max Drawdown</span><input type="number" id="propMaxDD" value="2000" oninput="breakToCustom()" class="input"></div>
-        </div>
-        <div class="grid-2">
-          <div><span class="input-label">Daily Loss Limit</span><input type="number" id="propDailyLoss" value="1000" oninput="breakToCustom()" class="input"></div>
-          <div><span class="input-label">DD Mechanism</span>
-            <select id="propDDType" onchange="breakToCustom()" class="input">
-              <option value="trailing">Intraday Trailing</option>
-              <option value="eod">End-of-Day Trailing</option>
-              <option value="static">Static Floor</option>
-            </select>
+<!-- ===================== HOME PAGE ===================== -->
+<div id="page-home" class="page active">
+
+  <!-- HERO -->
+  <section class="hero-section">
+    <div class="hero-wrap">
+
+      <!-- LEFT: Live Deal Desk -->
+      <aside class="deal-desk">
+        <div class="live-label"><span class="live-dot"></span>Live Deal Desk</div>
+        <div class="deal-list">
+          <div class="deal-item">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+              <p class="deal-name">LUCID TRADING</p>
+              <span class="deal-badge">40% OFF</span>
+            </div>
+            <p class="deal-desc">No Funded Consistency Rule — buy 5 Evals at 40% OFF</p>
+          </div>
+          <div class="deal-item">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+              <p class="deal-name">TRADEIFY</p>
+              <span class="deal-badge">40% OFF</span>
+            </div>
+            <p class="deal-desc">40% OFF + No Activation Fee + All Evals 40% OFF</p>
+          </div>
+          <div class="deal-item">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+              <p class="deal-name">MY FUNDED FUTURES</p>
+              <span class="deal-badge">12% OFF</span>
+            </div>
+            <p class="deal-desc">Rapid Plans — take payout up to 100K</p>
           </div>
         </div>
-        <div class="grid-2">
-          <div><span class="input-label">Consistency Rule</span>
-            <select id="propConsistency" onchange="breakToCustom()" class="input">
-              <option value="0">None</option><option value="20">20% Max Day</option><option value="30">30% Max Day</option><option value="40">40% Max Day</option><option value="50">50% Max Day</option>
-            </select>
+      </aside>
+
+      <!-- RIGHT: Headline + Search -->
+      <div class="hero-content">
+        <h1 class="hero-h1">
+          <span class="hero-line">Find Verified <span class="h1-green">Prop Firm</span></span>
+          <span class="hero-line">Discounts &amp; Compare the</span>
+          <span class="hero-line">Best.</span>
+        </h1>
+        <p class="hero-sub">Access the ultimate terminal for modern traders. Compare spreads, drawdown rules, and payout speeds with surgical precision.</p>
+        <div class="search-box">
+          <div class="search-left">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:rgba(255,255,255,0.34);flex-shrink:0;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.34-4.34"/></svg>
+            <input type="text" id="heroSearch" placeholder="Search firm, account size, DD type..." class="search-input" oninput="liveSearch(this.value)">
           </div>
-          <div><span class="input-label">Min Trading Days</span><input type="number" id="propMinDays" value="5" oninput="breakToCustom()" class="input"></div>
+          <button class="search-btn" onclick="runSearch()">Analyze Now</button>
         </div>
       </div>
-      <button onclick="runSim()" class="btn btn-primary" style="margin-top:14px;">
-        <i class="fas fa-bolt"></i> Run Simulation (500 Monte Carlo)
-      </button>
     </div>
-    <!-- Compliance -->
-    <div class="card card-p">
-      <h4 style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;">Compliance Audit</h4>
-      <div id="auditStatusBox" class="audit-box" style="margin-bottom:12px;">
-        <span style="font-size:12px;color:var(--text-muted);">Run simulation to see results.</span>
-      </div>
-      <div style="background:var(--bg-input);border-radius:10px;padding:14px;border:1px solid var(--border-primary);margin-bottom:12px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-          <span style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Pass Probability</span>
-          <span id="passProb" class="mono" style="font-size:20px;font-weight:700;">—</span>
-        </div>
-        <div class="progress-bar-bg"><div id="probBar" class="progress-bar" style="width:0%;background:var(--accent-green);"></div></div>
-        <p id="probLabel" style="font-size:11px;color:var(--text-muted);margin-top:8px;">Awaiting simulation...</p>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:6px;" class="mono" id="auditDetails">
-        <div style="display:flex;justify-content:space-between;font-size:11px;"><span style="color:var(--text-muted);">Target Progress:</span><span id="auditTarget">—</span></div>
-        <div style="display:flex;justify-content:space-between;font-size:11px;"><span style="color:var(--text-muted);">Worst DD Hit:</span><span id="auditDD">—</span></div>
-        <div style="display:flex;justify-content:space-between;font-size:11px;"><span style="color:var(--text-muted);">Max Single Win:</span><span id="auditCons">—</span></div>
-        <div style="display:flex;justify-content:space-between;font-size:11px;"><span style="color:var(--text-muted);">Daily Violations:</span><span id="auditDaily">—</span></div>
-        <div style="display:flex;justify-content:space-between;font-size:11px;"><span style="color:var(--text-muted);">Trading Days:</span><span id="auditDays">—</span></div>
-      </div>
-    </div>
-  </div>
-  <!-- Sim Right -->
-  <div style="display:flex;flex-direction:column;gap:16px;">
-    <div class="grid-4">
-      <div class="stat-card"><p class="stat-label">Net PnL</p><p id="m-equity" class="stat-value">—</p></div>
-      <div class="stat-card"><p class="stat-label">Expectancy</p><p id="m-expectancy" class="stat-value" style="color:var(--accent-blue);">—</p></div>
-      <div class="stat-card"><p class="stat-label">Max DD %</p><p id="m-drawdown" class="stat-value" style="color:var(--accent-red);">—</p></div>
-      <div class="stat-card"><p class="stat-label">Profit Factor</p><p id="m-pf" class="stat-value" style="color:var(--accent-green);">—</p></div>
-    </div>
-    <div class="grid-4">
-      <div class="stat-card"><p class="stat-label">Win Rate</p><p id="m-wr" class="mono" style="font-size:16px;font-weight:600;">—</p></div>
-      <div class="stat-card"><p class="stat-label">Avg Win / Loss</p><p id="m-avgwl" class="mono" style="font-size:13px;font-weight:600;">—</p></div>
-      <div class="stat-card"><p class="stat-label">Winning Days</p><p id="m-wdays" class="mono" style="font-size:16px;font-weight:600;">—</p></div>
-      <div class="stat-card"><p class="stat-label">Highest Win</p><p id="m-hiwin" class="mono" style="font-size:16px;font-weight:600;">—</p></div>
-    </div>
-    <!-- Trade Sequence -->
-    <div class="card card-sm">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        <span style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Trade Sequence</span>
-        <div style="display:flex;gap:14px;font-size:11px;">
-          <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;background:var(--accent-green);border-radius:2px;"></span><span style="color:var(--text-muted);">W:</span><span id="s-win" class="mono">—</span></span>
-          <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;background:var(--accent-red);border-radius:2px;"></span><span style="color:var(--text-muted);">L:</span><span id="s-loss" class="mono">—</span></span>
-        </div>
-      </div>
-      <div id="sequenceTimeline" style="display:flex;gap:3px;flex-wrap:wrap;max-height:64px;overflow:hidden;"></div>
-    </div>
-    <!-- Charts -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-      <div class="card card-sm" style="height:260px;display:flex;flex-direction:column;">
-        <p style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:8px;">Equity Curve</p>
-        <div style="flex:1;min-height:0;"><canvas id="equityChart"></canvas></div>
-      </div>
-      <div class="card card-sm" style="height:260px;display:flex;flex-direction:column;">
-        <p style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:8px;">Monte Carlo (500)</p>
-        <div style="flex:1;min-height:0;"><canvas id="monteCarloChart"></canvas></div>
-      </div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-      <div class="card card-sm" style="height:260px;display:flex;flex-direction:column;">
-        <p style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:8px;">PnL Distribution</p>
-        <div style="flex:1;min-height:0;"><canvas id="distributionChart"></canvas></div>
-      </div>
-      <div class="card card-sm" style="height:260px;display:flex;flex-direction:column;">
-        <p style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:8px;">R-Multiple Histogram</p>
-        <div style="flex:1;min-height:0;"><canvas id="histogramChart"></canvas></div>
-      </div>
-    </div>
-  </div>
-</div>
-</div>
+  </section>
 
-<!-- TAB: FIRMS -->
-<div id="tab-firms" class="section">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
-    <div>
-      <h2 style="font-size:20px;font-weight:800;">Prop Firm Directory</h2>
-      <p style="font-size:13px;color:var(--text-muted);margin-top:4px;">Compare firms, rules, and exclusive discounts with code <span class="mono" style="color:var(--accent-purple);font-weight:700;">EDGE</span></p>
-    </div>
-    <div style="display:flex;gap:6px;" id="firmFilterBtns">
-      <button class="nav-tab active" data-filter="all">All</button>
-      <button class="nav-tab" data-filter="futures">Futures</button>
-      <button class="nav-tab" data-filter="forex">Forex/CFD</button>
-    </div>
-  </div>
-  <div id="firmDirectoryGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));gap:20px;"></div>
-</div>
+  <!-- FIRMS TABLE SECTION -->
+  <section class="firms-section" id="firms">
+    <div class="section-wrap">
+      <div style="text-align:center;margin-bottom:32px;">
+        <h2 class="section-title">All Prop Firms</h2>
+        <p style="color:#989898;margin-top:6px;font-size:14px;">Compare all prop firms and find the best discount codes — use code <span class="mono" style="color:#24bb78;font-weight:700;">EDGE</span> at checkout</p>
+      </div>
 
-<!-- TAB: MATCHER -->
-<div id="tab-match" class="section">
-  <div style="display:grid;grid-template-columns:380px 1fr;gap:24px;">
-    <div style="display:flex;flex-direction:column;gap:16px;">
-      <div class="card card-p">
-        <h3 style="font-size:15px;font-weight:700;margin-bottom:4px;">Trading Style Profile</h3>
-        <p style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">Enter your parameters for AI-powered matching.</p>
-        <div class="grid-2" style="margin-bottom:10px;">
-          <div><span class="input-label">Win Rate %</span><input type="number" id="m-wr-in" value="60" class="input"></div>
-          <div><span class="input-label">Risk:Reward</span><input type="number" id="m-rr-in" value="1.5" step="0.1" class="input"></div>
-          <div><span class="input-label">Risk/Trade %</span><input type="number" id="m-risk-in" value="0.5" step="0.1" class="input"></div>
-          <div><span class="input-label">Trades/Day</span><input type="number" id="m-tpd-in" value="3" class="input"></div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:10px;">
-          <div><span class="input-label">DD Preference</span><select id="m-dd-in" class="input"><option value="any">No Preference</option><option value="static">Static Floor</option><option value="eod">EOD Trailing</option><option value="trailing">Intraday Trailing</option></select></div>
-          <div><span class="input-label">Consistency Tolerance</span><select id="m-cons-in" class="input"><option value="any">Any</option><option value="none">No rule preferred</option><option value="relaxed">Relaxed (40%+)</option><option value="strict">Strict OK (20-30%)</option></select></div>
-          <div><span class="input-label">Min Days</span><select id="m-days-in" class="input"><option value="any">Any</option><option value="quick">Quick (0-3)</option><option value="moderate">Moderate (4-7)</option><option value="extended">Extended (8+)</option></select></div>
-          <div><span class="input-label">Market</span><select id="m-market-in" class="input"><option value="all">All</option><option value="futures">Futures</option><option value="forex">Forex/CFD</option></select></div>
-        </div>
-        <button onclick="runMatcher()" class="btn btn-secondary" style="margin-top:16px;">
-          <i class="fas fa-crosshairs"></i> Find Best Firms
-        </button>
-      </div>
-    </div>
-    <div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-        <h3 style="font-size:15px;font-weight:700;">Results</h3>
-        <span id="matchCount" style="font-size:12px;color:var(--text-muted);">Run matcher to see results</span>
-      </div>
-      <div id="matchResults" style="display:flex;flex-direction:column;gap:12px;">
-        <div class="card card-p" style="text-align:center;color:var(--text-muted);padding:48px;">
-          <i class="fas fa-crosshairs" style="font-size:32px;margin-bottom:12px;opacity:0.3;"></i>
-          <p style="font-size:13px;">Configure your profile and click <b>Find Best Firms</b></p>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- TAB: CALCULATORS -->
-<div id="tab-calc" class="section">
-  <h2 style="font-size:20px;font-weight:800;margin-bottom:6px;">Trading Tools & Calculators</h2>
-  <p style="font-size:13px;color:var(--text-muted);margin-bottom:24px;">Essential calculators for prop firm traders.</p>
-  <div class="grid-3">
-    <div class="card card-p">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
-        <div style="width:36px;height:36px;border-radius:10px;background:var(--blue-bg);display:flex;align-items:center;justify-content:center;"><i class="fas fa-ruler" style="color:var(--accent-blue);"></i></div>
-        <div><h3 style="font-size:14px;font-weight:700;">Position Sizer</h3><p style="font-size:11px;color:var(--text-muted);">Optimal lot/contract size</p></div>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:10px;">
-        <div><span class="input-label">Account Balance ($)</span><input type="number" id="calc-bal" value="50000" class="input"></div>
-        <div><span class="input-label">Risk Per Trade (%)</span><input type="number" id="calc-risk" value="0.5" step="0.1" class="input"></div>
-        <div><span class="input-label">Stop Loss (ticks/pips)</span><input type="number" id="calc-sl" value="10" class="input"></div>
-        <div><span class="input-label">Tick/Pip Value ($)</span><input type="number" id="calc-tv" value="12.5" step="0.5" class="input"></div>
-        <button onclick="calcPosition()" class="btn btn-primary"><i class="fas fa-calculator"></i> Calculate</button>
-      </div>
-      <div id="calcResult" style="display:none;margin-top:14px;background:var(--bg-input);border-radius:10px;padding:14px;border:1px solid var(--border-primary);"></div>
-    </div>
-    <div class="card card-p">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
-        <div style="width:36px;height:36px;border-radius:10px;background:var(--green-bg);display:flex;align-items:center;justify-content:center;"><i class="fas fa-road" style="color:var(--accent-green);"></i></div>
-        <div><h3 style="font-size:14px;font-weight:700;">Target Roadmap</h3><p style="font-size:11px;color:var(--text-muted);">Days to hit target</p></div>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:10px;">
-        <div><span class="input-label">Profit Target ($)</span><input type="number" id="road-target" value="3000" class="input"></div>
-        <div><span class="input-label">Win Rate (%)</span><input type="number" id="road-wr" value="60" class="input"></div>
-        <div><span class="input-label">Avg Win ($)</span><input type="number" id="road-avgw" value="200" class="input"></div>
-        <div><span class="input-label">Avg Loss ($)</span><input type="number" id="road-avgl" value="120" class="input"></div>
-        <div><span class="input-label">Trades/Day</span><input type="number" id="road-tpd" value="3" class="input"></div>
-        <button onclick="calcRoadmap()" class="btn btn-primary"><i class="fas fa-calculator"></i> Calculate</button>
-      </div>
-      <div id="roadResult" style="display:none;margin-top:14px;background:var(--bg-input);border-radius:10px;padding:14px;border:1px solid var(--border-primary);"></div>
-    </div>
-    <div class="card card-p">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
-        <div style="width:36px;height:36px;border-radius:10px;background:var(--purple-bg);display:flex;align-items:center;justify-content:center;"><i class="fas fa-wallet" style="color:var(--accent-purple);"></i></div>
-        <div><h3 style="font-size:14px;font-weight:700;">Payout & ROI</h3><p style="font-size:11px;color:var(--text-muted);">Earnings projection</p></div>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:10px;">
-        <div><span class="input-label">Eval Fee ($)</span><input type="number" id="pay-fee" value="350" class="input"></div>
-        <div><span class="input-label">Funded Size ($)</span><input type="number" id="pay-funded" value="50000" class="input"></div>
-        <div><span class="input-label">Monthly Profit (%)</span><input type="number" id="pay-profit" value="5" step="0.5" class="input"></div>
-        <div><span class="input-label">Payout Split (%)</span><input type="number" id="pay-split" value="90" class="input"></div>
-        <div><span class="input-label">Months</span><input type="number" id="pay-months" value="6" class="input"></div>
-        <button onclick="calcPayout()" class="btn btn-primary"><i class="fas fa-calculator"></i> Calculate</button>
-      </div>
-      <div id="payResult" style="display:none;margin-top:14px;background:var(--bg-input);border-radius:10px;padding:14px;border:1px solid var(--border-primary);"></div>
-    </div>
-  </div>
-</div>
-
-<!-- TAB: TRACKER -->
-<div id="tab-tracker" class="section">
-  <div style="display:grid;grid-template-columns:380px 1fr;gap:24px;">
-    <div style="display:flex;flex-direction:column;gap:16px;">
-      <div class="card card-p">
-        <h3 style="font-size:15px;font-weight:700;margin-bottom:4px;">Add Evaluation</h3>
-        <p style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">Track your active evaluations.</p>
-        <div style="display:flex;flex-direction:column;gap:10px;">
-          <div><span class="input-label">Firm</span><select id="track-firm" class="input"></select></div>
-          <div class="grid-2">
-            <div><span class="input-label">Account Size</span><input type="number" id="track-size" value="50000" class="input"></div>
-            <div><span class="input-label">Profit Target</span><input type="number" id="track-target" value="3000" class="input"></div>
+      <!-- Tab toggle: Challenge / All Firms -->
+      <div style="display:flex;justify-content:center;margin-bottom:24px;">
+        <div class="tab-pill-wrap">
+          <div class="tab-pills" role="tablist">
+            <button class="tab-pill active" onclick="switchTab('challenge',this)" role="tab">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg>
+              Challenge Options
+            </button>
+            <button class="tab-pill" onclick="switchTab('allfirms',this)" role="tab">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 12h4M10 8h4M14 21v-3a2 2 0 0 0-4 0v3"/><path d="M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2"/><path d="M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"/></svg>
+              All Firms
+            </button>
           </div>
-          <div class="grid-2">
-            <div><span class="input-label">Max DD</span><input type="number" id="track-dd" value="2000" class="input"></div>
-            <div><span class="input-label">Current PnL</span><input type="number" id="track-pnl" value="0" class="input"></div>
-          </div>
-          <div class="grid-2">
-            <div><span class="input-label">Days Traded</span><input type="number" id="track-days" value="0" class="input"></div>
-            <div><span class="input-label">Status</span><select id="track-status" class="input"><option value="active">Active</option><option value="passed">Passed</option><option value="failed">Failed</option></select></div>
-          </div>
-          <button onclick="addEval()" class="btn btn-secondary" style="margin-top:6px;"><i class="fas fa-plus"></i> Add Evaluation</button>
         </div>
       </div>
-      <div class="card card-p">
-        <h4 style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:12px;">Lifetime Stats</h4>
-        <div style="display:flex;flex-direction:column;gap:8px;" class="mono" style="font-size:13px;">
-          <div style="display:flex;justify-content:space-between;font-size:13px;"><span style="color:var(--text-muted);">Total Evals:</span><span id="ts-total">0</span></div>
-          <div style="display:flex;justify-content:space-between;font-size:13px;"><span style="color:var(--text-muted);">Passed:</span><span id="ts-passed" style="color:var(--accent-green);">0</span></div>
-          <div style="display:flex;justify-content:space-between;font-size:13px;"><span style="color:var(--text-muted);">Failed:</span><span id="ts-failed" style="color:var(--accent-red);">0</span></div>
-          <div style="display:flex;justify-content:space-between;font-size:13px;"><span style="color:var(--text-muted);">Active:</span><span id="ts-active" style="color:var(--accent-blue);">0</span></div>
-          <div style="display:flex;justify-content:space-between;font-size:13px;"><span style="color:var(--text-muted);">Pass Rate:</span><span id="ts-rate" style="color:var(--accent-amber);">—</span></div>
+
+      <!-- CHALLENGE TAB -->
+      <div id="tab-challenge" class="tab-content active">
+        <div class="table-card">
+          <!-- Filters row -->
+          <div class="table-filters">
+            <div class="filter-left">
+              <p class="filter-title">Available Challenge Options</p>
+              <p class="filter-sub">Use the firm toggle to view one firm, or keep all firms selected.</p>
+            </div>
+            <div class="filter-right">
+              <span class="filter-label">Firm</span>
+              <select id="firmFilter" class="filter-select" onchange="filterTable()">
+                <option value="all">All Firms</option>
+              </select>
+              <button class="filter-reset" onclick="resetFilters()">Reset</button>
+            </div>
+          </div>
+          <!-- DD Type filter pills -->
+          <div class="pill-filter-row">
+            <div class="pill-group">
+              <button class="filter-pill active" data-ddtype="all" onclick="filterByDD('all',this)">All Types</button>
+              <button class="filter-pill" data-ddtype="Intraday Trail" onclick="filterByDD('Intraday Trail',this)">Intraday Trail</button>
+              <button class="filter-pill" data-ddtype="EOD" onclick="filterByDD('EOD',this)">EOD</button>
+              <button class="filter-pill" data-ddtype="Static" onclick="filterByDD('Static',this)">Static</button>
+              <button class="filter-pill" data-ddtype="funded" onclick="filterByDD('funded',this)">Straight to Funded</button>
+            </div>
+            <div class="pill-group">
+              <button class="size-pill" data-size="all" onclick="filterBySize('all',this)">All Sizes</button>
+              <button class="size-pill" data-size="25000" onclick="filterBySize('25000',this)">$25K</button>
+              <button class="size-pill active" data-size="50000" onclick="filterBySize('50000',this)">$50K</button>
+              <button class="size-pill" data-size="100000" onclick="filterBySize('100000',this)">$100K</button>
+              <button class="size-pill" data-size="150000" onclick="filterBySize('150000',this)">$150K</button>
+            </div>
+          </div>
+
+          <!-- DESKTOP TABLE -->
+          <div class="desktop-table-wrap">
+            <table class="cmp-table" id="challengeTable">
+              <thead>
+                <tr>
+                  <th class="col-firm">Firm</th>
+                  <th class="col-center">Account Size</th>
+                  <th class="col-center">Profit Target</th>
+                  <th class="col-center">Drawdown</th>
+                  <th class="col-center">Daily Loss</th>
+                  <th class="col-center sortable" onclick="sortTable('fee')">Challenge Fee <span class="sort-icon">↕</span></th>
+                  <th class="col-center sortable" onclick="sortTable('truecost')">True Cost <span id="sortIcon" class="sort-icon">↑</span></th>
+                  <th class="col-center">Points</th>
+                  <th class="col-center">Discount</th>
+                </tr>
+              </thead>
+              <tbody id="challengeTableBody"></tbody>
+            </table>
+          </div>
+
+          <!-- MOBILE CARDS -->
+          <div class="mobile-cards" id="mobileFirmCards"></div>
+
+          <!-- Pagination -->
+          <div class="table-footer">
+            <div class="pagination" id="pagination"></div>
+            <div class="pagination-info" id="paginationInfo"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ALL FIRMS TAB -->
+      <div id="tab-allfirms" class="tab-content">
+        <div id="allFirmsGrid" class="firms-grid"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SIMULATOR PROMO BANNER -->
+  <section class="promo-section">
+    <div class="section-wrap">
+      <div class="promo-card">
+        <div class="promo-left">
+          <span class="promo-tag">NEW TOOL</span>
+          <h3 class="promo-title">Eval Pass Simulator</h3>
+          <p class="promo-desc">Run 500 Monte Carlo simulations against any firm's rules. Know your pass probability before you buy.</p>
+          <button class="promo-btn" onclick="showPage('simulator', document.querySelectorAll('.nav-link')[2])">Try the Simulator →</button>
+        </div>
+        <div class="promo-right">
+          <div class="promo-stat"><span class="ps-num">500</span><span class="ps-label">Monte Carlo Runs</span></div>
+          <div class="promo-stat"><span class="ps-num">12</span><span class="ps-label">Prop Firms</span></div>
+          <div class="promo-stat"><span class="ps-num">100%</span><span class="ps-label">Free</span></div>
         </div>
       </div>
     </div>
-    <div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-        <h3 style="font-size:15px;font-weight:700;">Your Evaluations</h3>
-        <button onclick="clearEvals()" style="font-size:11px;color:var(--accent-red);background:var(--red-bg);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:6px 14px;cursor:pointer;font-weight:600;">
-          <i class="fas fa-trash" style="margin-right:4px;"></i> Clear All
-        </button>
+  </section>
+
+  <!-- COMMUNITY + EDGE POINTS -->
+  <section class="community-section">
+    <div class="section-wrap">
+      <div class="community-grid">
+        <!-- Left: Community -->
+        <div class="community-card">
+          <div class="comm-header">
+            <span class="comm-tag">Community Hub</span>
+            <div class="comm-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/></svg></div>
+          </div>
+          <h3 class="comm-title">PropFirmEdge<br>Community</h3>
+          <p class="comm-desc">Prop firm reviews and structured side-by-side comparisons. Built by active traders, backed by real performance data so you choose capital with clarity.</p>
+          <p class="comm-desc2">Compare challenge rules in real time, review payout proof from active traders, and get practical feedback before committing to a firm.</p>
+          <div class="comm-tags">
+            <span class="comm-chip">Live Trade Chat</span>
+            <span class="comm-chip">Discount Alerts</span>
+            <span class="comm-chip">Daily Sessions</span>
+          </div>
+          <a href="#" class="comm-btn">Join Our Discord ↗</a>
+        </div>
+        <!-- Right: Edge Points -->
+        <div class="community-card" style="border-left:1px solid rgba(255,255,255,0.06);padding-left:28px;">
+          <div class="comm-header">
+            <span class="comm-tag">Edge Points</span>
+            <div class="comm-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/></svg></div>
+          </div>
+          <h3 class="comm-title">Turn Verified<br>Purchases Into Rewards</h3>
+          <p class="comm-desc">Claim eligible purchases, climb the reward ladder, and unlock better vault rewards as your lifetime Edge Points grow.</p>
+          <div class="points-tiers">
+            <div class="tier tier-green"><span class="tier-label">Bronze</span><span class="tier-pct">2.5%</span></div>
+            <div class="tier tier-gold"><span class="tier-label">Gold</span><span class="tier-pct">3.5%</span></div>
+            <div class="tier tier-green"><span class="tier-label">Master</span><span class="tier-pct">5%</span></div>
+            <div class="tier tier-cyan"><span class="tier-label">Champ</span><span class="tier-pct">6%</span></div>
+          </div>
+          <div class="comm-tags" style="margin-top:12px;">
+            <span class="comm-chip">Claim Purchases</span>
+            <span class="comm-chip">Vault Rewards</span>
+            <span class="comm-chip green-chip">Champ unlocks 6% top tier</span>
+          </div>
+          <a href="#" class="comm-btn">Explore Edge Points ↗</a>
+        </div>
       </div>
-      <div id="trackerList" style="display:flex;flex-direction:column;gap:12px;">
-        <div class="card card-p" style="text-align:center;color:var(--text-muted);padding:48px;">
-          <i class="fas fa-chart-line" style="font-size:32px;margin-bottom:12px;opacity:0.3;"></i>
-          <p style="font-size:13px;">No evaluations tracked yet.</p>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="faq-section">
+    <div class="section-wrap" style="max-width:900px;">
+      <div style="text-align:center;margin-bottom:28px;">
+        <h2 class="faq-title">Frequently <span style="color:#24bb78;">Asked</span></h2>
+        <p style="color:rgba(255,255,255,0.56);font-size:14px;margin-top:8px;line-height:1.6;">Quick answers to the questions traders ask most before choosing a prop firm.</p>
+      </div>
+      <div class="faq-list" id="faqList"></div>
+    </div>
+  </section>
+
+</div><!-- /home page -->
+
+
+<!-- ===================== COMPARE PAGE ===================== -->
+<div id="page-compare" class="page">
+  <div class="section-wrap" style="padding-top:40px;">
+    <div style="margin-bottom:28px;">
+      <h2 class="section-title">Compare Firms</h2>
+      <p style="color:#989898;margin-top:6px;font-size:14px;">Filter and compare any combination of firms side by side.</p>
+    </div>
+    <div class="compare-filters">
+      <div class="cf-group">
+        <label class="cf-label">Market Type</label>
+        <div class="pill-group">
+          <button class="filter-pill active" data-mkt="all" onclick="filterCompare('mkt','all',this)">All</button>
+          <button class="filter-pill" data-mkt="futures" onclick="filterCompare('mkt','futures',this)">Futures</button>
+          <button class="filter-pill" data-mkt="forex" onclick="filterCompare('mkt','forex',this)">Forex/CFD</button>
+        </div>
+      </div>
+      <div class="cf-group">
+        <label class="cf-label">DD Type</label>
+        <div class="pill-group">
+          <button class="filter-pill active" data-cdd="all" onclick="filterCompare('dd','all',this)">All</button>
+          <button class="filter-pill" data-cdd="EOD" onclick="filterCompare('dd','EOD',this)">EOD</button>
+          <button class="filter-pill" data-cdd="Static" onclick="filterCompare('dd','Static',this)">Static</button>
+          <button class="filter-pill" data-cdd="Intraday Trail" onclick="filterCompare('dd','Intraday Trail',this)">Trailing</button>
+        </div>
+      </div>
+      <div class="cf-group">
+        <label class="cf-label">Sort By</label>
+        <select class="filter-select" onchange="sortCompare(this.value)">
+          <option value="truecost">True Cost (Low→High)</option>
+          <option value="payout">Payout % (High→Low)</option>
+          <option value="discount">Discount % (High→Low)</option>
+        </select>
+      </div>
+    </div>
+    <div id="compareGrid" class="compare-grid"></div>
+  </div>
+</div>
+
+<!-- ===================== SIMULATOR PAGE ===================== -->
+<div id="page-simulator" class="page">
+  <div class="section-wrap" style="padding-top:40px;">
+    <div style="margin-bottom:28px;">
+      <h2 class="section-title">Eval Pass Simulator</h2>
+      <p style="color:#989898;margin-top:6px;font-size:14px;">Run 500 Monte Carlo simulations against real firm rules. Know your pass probability before you buy.</p>
+    </div>
+    <div class="sim-layout">
+      <!-- LEFT CONFIG -->
+      <div class="sim-left">
+        <div class="sim-card">
+          <h3 class="sim-card-title">Strategy Profile</h3>
+          <div class="sim-grid2">
+            <div><label class="sim-label">Win Rate %</label><input type="number" id="s-wr" value="65" class="sim-input"></div>
+            <div><label class="sim-label">Risk : Reward</label><input type="number" id="s-rr" value="1.5" step="0.1" class="sim-input"></div>
+            <div><label class="sim-label">Risk / Trade %</label><input type="number" id="s-risk" value="0.3" step="0.05" class="sim-input"></div>
+            <div><label class="sim-label">Num Trades</label><input type="number" id="s-trades" value="100" class="sim-input"></div>
+          </div>
+        </div>
+        <div class="sim-card">
+          <h3 class="sim-card-title">Evaluation Rules</h3>
+          <p style="font-size:12px;color:#989898;margin-bottom:12px;">Select a firm preset or configure manually.</p>
+          <div style="margin-bottom:10px;"><label class="sim-label">Prop Firm</label><select id="s-firm" onchange="simUpdateSizes()" class="sim-input sim-select"></select></div>
+          <div class="sim-grid2" style="margin-bottom:10px;">
+            <div><label class="sim-label">Account Size</label><select id="s-size" onchange="simUpdateTypes()" class="sim-input sim-select"><option value="custom">Manual</option></select></div>
+            <div><label class="sim-label">Challenge Type</label><select id="s-type" onchange="simApplyPreset()" class="sim-input sim-select"><option value="custom">Manual</option></select></div>
+          </div>
+          <div style="border-top:1px solid #212121;padding-top:12px;" class="sim-grid2">
+            <div style="grid-column:span 2;"><label class="sim-label">Capital ($)</label><input type="number" id="s-capital" value="50000" oninput="simBreak()" class="sim-input"></div>
+            <div><label class="sim-label">Profit Target</label><input type="number" id="s-target" value="3000" oninput="simBreak()" class="sim-input"></div>
+            <div><label class="sim-label">Max Drawdown</label><input type="number" id="s-maxdd" value="2000" oninput="simBreak()" class="sim-input"></div>
+            <div><label class="sim-label">Daily Loss</label><input type="number" id="s-daily" value="1000" oninput="simBreak()" class="sim-input"></div>
+            <div><label class="sim-label">DD Mechanism</label>
+              <select id="s-ddtype" onchange="simBreak()" class="sim-input sim-select">
+                <option value="trailing">Intraday Trailing</option>
+                <option value="eod" selected>EOD Trailing</option>
+                <option value="static">Static Floor</option>
+              </select>
+            </div>
+            <div><label class="sim-label">Consistency</label>
+              <select id="s-cons" onchange="simBreak()" class="sim-input sim-select">
+                <option value="0">None</option><option value="30">30% Max Day</option><option value="40">40% Max Day</option><option value="50">50% Max Day</option>
+              </select>
+            </div>
+            <div><label class="sim-label">Min Days</label><input type="number" id="s-mindays" value="5" oninput="simBreak()" class="sim-input"></div>
+          </div>
+          <button onclick="runSim()" class="sim-run-btn">⚡ Run 500 Simulations</button>
+        </div>
+        <!-- Audit -->
+        <div class="sim-card sim-dark-card">
+          <h4 class="sim-audit-title">Compliance Audit</h4>
+          <div id="simAuditBox" class="sim-audit-box"><span style="color:#989898;font-size:12px;">Run simulation to see results.</span></div>
+          <div class="sim-prob-box">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <span style="font-size:10px;font-weight:700;color:#989898;text-transform:uppercase;letter-spacing:0.06em;">Pass Probability (500 runs)</span>
+              <span id="simPassProb" class="mono" style="font-size:20px;font-weight:700;color:#f5f5f5;">—</span>
+            </div>
+            <div class="prob-track"><div id="simProbBar" class="prob-fill" style="width:0%;background:#24bb78;"></div></div>
+            <p id="simProbLabel" style="font-size:11px;color:#989898;margin-top:8px;">Awaiting simulation...</p>
+          </div>
+          <div class="sim-audit-rows">
+            <div class="sim-audit-row"><span>Target Progress:</span><span id="sa-target">—</span></div>
+            <div class="sim-audit-row"><span>Worst DD Hit:</span><span id="sa-dd">—</span></div>
+            <div class="sim-audit-row"><span>Max Single Win:</span><span id="sa-cons">—</span></div>
+            <div class="sim-audit-row"><span>Daily Violations:</span><span id="sa-daily">—</span></div>
+            <div class="sim-audit-row"><span>Trading Days:</span><span id="sa-days">—</span></div>
+          </div>
+        </div>
+      </div>
+      <!-- RIGHT CHARTS -->
+      <div class="sim-right">
+        <div class="sim-stats-row">
+          <div class="sim-stat"><p class="ss-label">Net PnL</p><p id="sm-equity" class="ss-val">—</p></div>
+          <div class="sim-stat"><p class="ss-label">Expectancy</p><p id="sm-expect" class="ss-val" style="color:#3b82f6;">—</p></div>
+          <div class="sim-stat"><p class="ss-label">Max DD %</p><p id="sm-dd" class="ss-val" style="color:#ef4444;">—</p></div>
+          <div class="sim-stat"><p class="ss-label">Profit Factor</p><p id="sm-pf" class="ss-val" style="color:#24bb78;">—</p></div>
+        </div>
+        <div class="sim-stats-row">
+          <div class="sim-stat"><p class="ss-label">Win Rate</p><p id="sm-wr" class="ss-val2">—</p></div>
+          <div class="sim-stat"><p class="ss-label">Avg Win / Loss</p><p id="sm-avgwl" class="ss-val2" style="font-size:13px;">—</p></div>
+          <div class="sim-stat"><p class="ss-label">Win Days</p><p id="sm-wdays" class="ss-val2">—</p></div>
+          <div class="sim-stat"><p class="ss-label">Highest Win</p><p id="sm-hiwin" class="ss-val2">—</p></div>
+        </div>
+        <div class="sim-seq-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <span style="font-size:10px;font-weight:700;color:#989898;text-transform:uppercase;">Trade Sequence</span>
+            <div style="display:flex;gap:12px;font-size:11px;">
+              <span style="color:#989898;">W: <span id="sm-wins" class="mono" style="color:#f5f5f5;">—</span></span>
+              <span style="color:#989898;">L: <span id="sm-losses" class="mono" style="color:#f5f5f5;">—</span></span>
+            </div>
+          </div>
+          <div id="simSeqRow" style="display:flex;gap:3px;flex-wrap:wrap;max-height:62px;overflow:hidden;"></div>
+        </div>
+        <div class="sim-charts-grid">
+          <div class="sim-chart-card"><p class="chart-label">Equity Curve</p><div style="flex:1;min-height:0;"><canvas id="chartEquity"></canvas></div></div>
+          <div class="sim-chart-card"><p class="chart-label">Monte Carlo (500)</p><div style="flex:1;min-height:0;"><canvas id="chartMC"></canvas></div></div>
+          <div class="sim-chart-card"><p class="chart-label">PnL Distribution</p><div style="flex:1;min-height:0;"><canvas id="chartDist"></canvas></div></div>
+          <div class="sim-chart-card"><p class="chart-label">R-Multiple Histogram</p><div style="flex:1;min-height:0;"><canvas id="chartHist"></canvas></div></div>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-</main>
+<!-- ===================== TRACKER PAGE ===================== -->
+<div id="page-tracker" class="page">
+  <div class="section-wrap" style="padding-top:40px;">
+    <div style="margin-bottom:28px;">
+      <h2 class="section-title">Eval Tracker</h2>
+      <p style="color:#989898;margin-top:6px;font-size:14px;">Track your active evaluations and monitor progress in real time.</p>
+    </div>
+    <div class="tracker-layout">
+      <div class="tracker-left">
+        <div class="sim-card">
+          <h3 class="sim-card-title">Add Evaluation</h3>
+          <div style="display:flex;flex-direction:column;gap:10px;margin-top:12px;">
+            <div><label class="sim-label">Firm</label><select id="t-firm" class="sim-input sim-select"></select></div>
+            <div class="sim-grid2">
+              <div><label class="sim-label">Account Size</label><input type="number" id="t-size" value="50000" class="sim-input"></div>
+              <div><label class="sim-label">Profit Target</label><input type="number" id="t-target" value="3000" class="sim-input"></div>
+            </div>
+            <div class="sim-grid2">
+              <div><label class="sim-label">Max DD</label><input type="number" id="t-dd" value="2000" class="sim-input"></div>
+              <div><label class="sim-label">Current PnL</label><input type="number" id="t-pnl" value="0" class="sim-input"></div>
+            </div>
+            <div class="sim-grid2">
+              <div><label class="sim-label">Days Traded</label><input type="number" id="t-days" value="0" class="sim-input"></div>
+              <div><label class="sim-label">Status</label>
+                <select id="t-status" class="sim-input sim-select">
+                  <option value="active">Active</option>
+                  <option value="passed">Passed</option>
+                  <option value="failed">Failed</option>
+                </select>
+              </div>
+            </div>
+            <button onclick="addTrackerEval()" class="sim-run-btn" style="background:#24bb78;color:#04150b;">+ Add Evaluation</button>
+          </div>
+        </div>
+        <div class="sim-card">
+          <h4 class="sim-card-title">Lifetime Stats</h4>
+          <div class="tracker-stats">
+            <div class="ts-row"><span>Total Evals</span><span id="ts-total" class="mono">0</span></div>
+            <div class="ts-row"><span>Passed</span><span id="ts-passed" class="mono" style="color:#24bb78;">0</span></div>
+            <div class="ts-row"><span>Failed</span><span id="ts-failed" class="mono" style="color:#ef4444;">0</span></div>
+            <div class="ts-row"><span>Active</span><span id="ts-active" class="mono" style="color:#3b82f6;">0</span></div>
+            <div class="ts-row"><span>Pass Rate</span><span id="ts-rate" class="mono" style="color:#f59e0b;">—</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="tracker-right">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <h3 style="font-size:16px;font-weight:700;">Your Evaluations</h3>
+          <button onclick="clearAllEvals()" style="font-size:11px;color:#ef4444;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:6px 14px;cursor:pointer;font-weight:600;">Clear All</button>
+        </div>
+        <div id="trackerList"></div>
+      </div>
+    </div>
+  </div>
+</div>
 
+<!-- ===================== FOOTER ===================== -->
+<footer class="site-footer">
+  <div class="section-wrap">
+    <div class="footer-divider"><div class="footer-divider-glow"></div></div>
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="#" class="nav-logo" style="font-size:28px;gap:10px;" onclick="showPage('home',null)">
+          <div class="nav-logo-icon">PE</div>
+          <span>PropFirmEdge</span>
+        </a>
+        <p class="footer-desc">Find the best prop firm discounts and simulate your eval pass rate. 100% free, forever.</p>
+        <div class="footer-socials">
+          <a href="#" class="social-btn" aria-label="Discord">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+          </a>
+          <a href="#" class="social-btn" aria-label="YouTube">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17"/><path d="m10 15 5-3-5-3z"/></svg>
+          </a>
+          <a href="#" class="social-btn" aria-label="X / Twitter">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2H21l-6.018 6.876L22 22h-5.486l-4.297-7.938L5.27 22H2.512l6.438-7.356L2 2h5.625l3.884 7.233L18.244 2zm-.967 18h1.527L6.794 3.895H5.155L17.277 20z"/></svg>
+          </a>
+        </div>
+      </div>
+      <div>
+        <h4 class="footer-heading">Product</h4>
+        <ul class="footer-links">
+          <li><a href="#" onclick="showPage('home',null)">Home</a></li>
+          <li><a href="#" onclick="showPage('compare',null)">Compare Firms</a></li>
+          <li><a href="#" onclick="showPage('simulator',null)">Eval Simulator</a></li>
+          <li><a href="#" onclick="showPage('tracker',null)">Eval Tracker</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="footer-heading">Resources</h4>
+        <ul class="footer-links">
+          <li><a href="#firms">All Prop Firms</a></li>
+          <li><a href="#firms">Discount Codes</a></li>
+          <li><a href="#" onclick="showPage('simulator',null)">Pass Simulator</a></li>
+          <li><a href="#">FAQ</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-legal">
+      <h3 class="footer-legal-title">Legal</h3>
+      <p>PropFirmEdge may use affiliate links and may earn commissions at no extra cost to you; rankings and reviews remain independent.</p>
+      <p>Trading carries significant risk and losses are possible. Content is educational only and is not financial, investment, or legal advice.</p>
+      <div class="footer-legal-links">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Disclaimer</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<div id="toastMsg" class="toast" style="display:none;">✓ Code EDGE copied!</div>
 <script src="app.js"></script>
 </body>
 </html>
