@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PropFirmEdge — Ultimate Evaluation Intelligence Platform</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e18;
+  --surface: #111827;
+  --card: #151d2e;
+  --card-hi: #1a2438;
+  --border: rgba(255,255,255,0.06);
+  --border-hi: rgba(255,255,255,0.12);
+  --text: #f1f5f9;
+  --muted: #64748b;
+  --green: #10b981;
+  --green-dim: rgba(16,185,129,0.12);
+  --red: #ef4444;
+  --red-dim: rgba(239,68,68,0.12);
+  --amber: #f59e0b;
+  --amber-dim: rgba(245,158,11,0.12);
+  --blue: #3b82f6;
+  --blue-dim: rgba(59,130,246,0.12);
+  --purple: #8b5cf6;
+  --purple-dim: rgba(139,92,246,0.12);
+  --cyan: #06b6d4;
+  --gradient-1: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  --gradient-2: linear-gradient(135deg, #10b981, #3b82f6);
+  --gradient-3: linear-gradient(135deg, #f59e0b, #ef4444);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Syne', sans-serif;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+.mono { font-family: 'JetBrains Mono', monospace; }
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+}
+.card-hi { border-color: var(--border-hi); }
+.inp {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border-hi);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  padding: 10px 12px;
+  width: 100%;
+  transition: border-color 0.2s;
+  appearance: none;
+}
+.inp:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
+.inp option { background: #1a2438; color: #f1f5f9; }
+label { font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 5px; }
+.tab-btn {
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.tab-btn.active { background: var(--card); border-color: var(--border-hi); color: var(--text); box-shadow: 0 2px 12px rgba(0,0,0,0.3); }
+.tab-btn:hover:not(.active) { color: var(--text); background: rgba(255,255,255,0.04); }
+.btn-primary {
+  background: var(--gradient-1);
+  color: #fff;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 12px 20px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  transition: opacity 0.2s, transform 0.15s;
+}
+.btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+.btn-primary:active { transform: translateY(0); }
+.btn-secondary {
+  background: var(--gradient-2);
+  color: #fff;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 11px 20px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  transition: opacity 0.2s;
+}
+.btn-secondary:hover { opacity: 0.85; }
+.stat-chip {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.badge-g { background: var(--green-dim); color: var(--green); }
+.badge-r { background: var(--red-dim); color: var(--red); }
+.badge-a { background: var(--amber-dim); color: var(--amber); }
+.badge-b { background: var(--blue-dim); color: var(--blue); }
+.badge-p { background: var(--purple-dim); color: var(--purple); }
+.scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
+.scrollbar::-webkit-scrollbar-track { background: transparent; }
+.scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 4px; }
+.section { display: none; }
+.section.active { display: block; }
+.prob-bar-wrap { background: rgba(255,255,255,0.06); border-radius: 6px; height: 8px; overflow: hidden; }
+.prob-bar { height: 100%; border-radius: 6px; transition: width 0.8s cubic-bezier(0.22,1,0.36,1); }
+.firm-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+  transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+}
+.firm-card:hover { border-color: var(--border-hi); transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
+.match-row {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.match-row:hover { border-color: var(--border-hi); box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+.match-bar-bg { background: rgba(255,255,255,0.06); border-radius: 4px; height: 6px; flex: 1; overflow: hidden; }
+.seq-block { width: 20px; height: 20px; border-radius: 4px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 700; color: #fff; font-family: 'JetBrains Mono', monospace; }
+.pulse { animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{ opacity:1 } 50%{ opacity:0.5 } }
+.glow-border { box-shadow: 0 0 0 1px var(--blue), 0 0 20px rgba(59,130,246,0.1); }
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+.tracker-row { background: var(--card-hi); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; }
+.tracker-row:hover { border-color: var(--border-hi); }
+.promo-banner {
+  background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(139,92,246,0.15));
+  border: 1px solid rgba(139,92,246,0.3);
+  border-radius: 12px;
+  padding: 16px 20px;
+}
+.detail-section { background: var(--card-hi); border-radius: 10px; padding: 16px; border: 1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header style="background:var(--surface); border-bottom:1px solid var(--border);" class="sticky top-0 z-50 px-6 py-3 flex items-center justify-between gap-4">
+  <div class="flex items-center gap-3">
+    <div style="background:var(--gradient-1); width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center;">
+      <span style="color:#fff; font-weight:800; font-size:15px;">PE</span>
+    </div>
+    <div>
+      <span style="font-size:17px; font-weight:800; letter-spacing:-0.02em;">PropFirmEdge</span>
+      <span class="mono" style="font-size:10px; color:var(--muted); margin-left:8px;">v3.0 PRO</span>
+    </div>
+  </div>
+  <div style="display:flex; gap:4px; background:rgba(255,255,255,0.03); padding:4px; border-radius:10px; border:1px solid var(--border);">
+    <button class="tab-btn active" onclick="switchTab('sim',this)">⚡ Eval Simulator</button>
+    <button class="tab-btn" onclick="switchTab('firms',this)">📊 Firm Directory</button>
+    <button class="tab-btn" onclick="switchTab('match',this)">🎯 Smart Matcher</button>
+    <button class="tab-btn" onclick="switchTab('calc',this)">🧮 Calculators</button>
+    <button class="tab-btn" onclick="switchTab('tracker',this)">📈 Eval Tracker</button>
+  </div>
+  <div class="flex items-center gap-3">
+    <div class="promo-banner" style="padding:6px 12px; display:flex; align-items:center; gap:6px;">
+      <span style="font-size:9px; color:var(--purple); font-weight:700; text-transform:uppercase;">Code:</span>
+      <span class="mono" style="font-size:12px; font-weight:700; color:var(--text);">EDGE</span>
+      <span style="font-size:9px; color:var(--green);">= DISCOUNT</span>
+    </div>
+    <div class="badge badge-g pulse">● LIVE</div>
+  </div>
+</header>
+
+<main class="p-4 lg:p-6 max-w-[1800px] mx-auto">
+
+<!-- TAB 1: EVAL SIMULATOR -->
+<div id="tab-sim" class="section active">
+  <div class="grid grid-cols-1 xl:grid-cols-12 gap-5">
+    <!-- LEFT PANEL -->
+    <div class="xl:col-span-4 space-y-4">
+      <div class="card p-5">
+        <div class="mb-4">
+          <h3 style="font-size:13px; font-weight:700;">Strategy Edge Profile</h3>
+          <p style="font-size:11px; color:var(--muted); margin-top:2px;">Define your edge parameters for Monte Carlo simulation.</p>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label>Win Rate %</label><input type="number" id="winRate" value="65" class="inp"></div>
+          <div><label>Risk : Reward</label><input type="number" id="rrRatio" value="1.5" step="0.1" class="inp"></div>
+          <div><label>Risk / Trade %</label><input type="number" id="riskPct" value="0.3" step="0.05" class="inp"></div>
+          <div><label>Total Trades</label><input type="number" id="numTrades" value="100" class="inp"></div>
+        </div>
+      </div>
+      <div class="card p-5 space-y-3">
+        <div class="mb-1">
+          <h3 style="font-size:13px; font-weight:700;">Evaluation Rules Blueprint</h3>
+          <p style="font-size:11px; color:var(--muted); margin-top:2px;">Select firm or configure manually.</p>
+        </div>
+        <div>
+          <label>Prop Firm</label>
+          <select id="propFirm" onchange="updateSizes()" class="inp" style="font-weight:600; color:var(--blue);"></select>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label>Account Size</label><select id="propSize" onchange="updateTypes()" class="inp"><option value="custom">Manual</option></select></div>
+          <div><label>Challenge Type</label><select id="propType" onchange="applyPreset()" class="inp"><option value="custom">Manual</option></select></div>
+        </div>
+        <div style="border-top:1px solid var(--border); padding-top:12px;" class="space-y-3">
+          <div><label>Starting Capital ($)</label><input type="number" id="capital" value="50000" oninput="breakToCustom()" class="inp"></div>
+          <div class="grid grid-cols-2 gap-3">
+            <div><label>Profit Target</label><input type="number" id="propTarget" value="3000" oninput="breakToCustom()" class="inp"></div>
+            <div><label>Max Drawdown</label><input type="number" id="propMaxDD" value="2000" oninput="breakToCustom()" class="inp"></div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div><label>Daily Loss Limit</label><input type="number" id="propDailyLoss" value="1000" oninput="breakToCustom()" class="inp"></div>
+            <div><label>DD Mechanism</label>
+              <select id="propDDType" onchange="breakToCustom()" class="inp">
+                <option value="trailing">Intraday Trailing</option>
+                <option value="eod">End-of-Day Trailing</option>
+                <option value="static">Static Floor</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div><label>Consistency Rule</label>
+              <select id="propConsistency" onchange="breakToCustom()" class="inp">
+                <option value="0">None</option>
+                <option value="20">20% Max Day</option>
+                <option value="30">30% Max Day</option>
+                <option value="40">40% Max Day</option>
+                <option value="50">50% Max Day</option>
+              </select>
+            </div>
+            <div><label>Min Trading Days</label><input type="number" id="propMinDays" value="5" oninput="breakToCustom()" class="inp"></div>
+          </div>
+        </div>
+        <button onclick="runSim()" class="btn-primary mt-2">⚡ Run Eval Simulation (500 Monte Carlo)</button>
+      </div>
+      <!-- Compliance Audit -->
+      <div class="card p-5 space-y-3" style="border-color:rgba(59,130,246,0.2);">
+        <h4 style="font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em;">Compliance Audit</h4>
+        <div id="auditStatusBox" style="padding:12px 14px; border-radius:10px; display:flex; align-items:center; justify-content:space-between; border:1px solid var(--border); background:var(--card-hi);">
+          <span style="font-size:11px; color:var(--muted);">Run simulation to see results.</span>
+        </div>
+        <div style="border:1px solid var(--border); border-radius:10px; padding:12px 14px; background:var(--card-hi);">
+          <div style="display:flex; justify-content:space-between; margin-bottom:8px; align-items:center;">
+            <span style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase;">Pass Probability (500 runs)</span>
+            <span id="passProb" class="mono" style="font-size:20px; font-weight:600;">—</span>
+          </div>
+          <div class="prob-bar-wrap"><div id="probBar" class="prob-bar" style="width:0%; background:var(--green);"></div></div>
+          <p id="probLabel" style="font-size:10px; color:var(--muted); margin-top:6px;">Awaiting simulation...</p>
+        </div>
+        <div class="space-y-2 mono" style="font-size:11px; border-top:1px solid var(--border); padding-top:12px;">
+          <div style="display:flex; justify-content:space-between;"><span style="color:var(--muted);">Target Progress:</span><span id="auditTarget">—</span></div>
+          <div style="display:flex; justify-content:space-between;"><span style="color:var(--muted);">Worst DD Hit:</span><span id="auditDD">—</span></div>
+          <div style="display:flex; justify-content:space-between;"><span style="color:var(--muted);">Max Single Win:</span><span id="auditCons">—</span></div>
+          <div style="display:flex; justify-content:space-between;"><span style="color:var(--muted);">Daily Violations:</span><span id="auditDaily">—</span></div>
+          <div style="display:flex; justify-content:space-between;"><span style="color:var(--muted);">Trading Days:</span><span id="auditDays">—</span></div>
+        </div>
+      </div>
+    </div>
+    <!-- RIGHT PANEL -->
+    <div class="xl:col-span-8 space-y-4">
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="stat-chip"><p style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; margin-bottom:6px;">Net PnL</p><p id="m-equity" class="mono" style="font-size:22px; font-weight:600;">—</p></div>
+        <div class="stat-chip"><p style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; margin-bottom:6px;">Expectancy</p><p id="m-expectancy" class="mono" style="font-size:22px; font-weight:600; color:var(--blue);">—</p></div>
+        <div class="stat-chip"><p style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; margin-bottom:6px;">Max DD %</p><p id="m-drawdown" class="mono" style="font-size:22px; font-weight:600; color:var(--red);">—</p></div>
+        <div class="stat-chip"><p style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; margin-bottom:6px;">Profit Factor</p><p id="m-pf" class="mono" style="font-size:22px; font-weight:600; color:var(--green);">—</p></div>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="stat-chip"><p style="font-size:10px; color:var(--muted); margin-bottom:4px;">Win Rate</p><p id="m-wr" class="mono" style="font-size:15px; font-weight:600;">—</p></div>
+        <div class="stat-chip"><p style="font-size:10px; color:var(--muted); margin-bottom:4px;">Avg Win / Loss</p><p id="m-avgwl" class="mono" style="font-size:13px; font-weight:600;">—</p></div>
+        <div class="stat-chip"><p style="font-size:10px; color:var(--muted); margin-bottom:4px;">Winning Days</p><p id="m-wdays" class="mono" style="font-size:15px; font-weight:600;">—</p></div>
+        <div class="stat-chip"><p style="font-size:10px; color:var(--muted); margin-bottom:4px;">Highest Win</p><p id="m-hiwin" class="mono" style="font-size:15px; font-weight:600;">—</p></div>
+      </div>
+      <!-- Trade Sequence -->
+      <div class="card p-4">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <span style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase;">Trade Sequence</span>
+          <div style="display:flex; gap:12px; font-size:10px;">
+            <span style="display:flex; align-items:center; gap:4px;"><span style="width:8px;height:8px;background:var(--green);border-radius:2px;display:inline-block;"></span><span style="color:var(--muted);">Wins: </span><span id="s-win" class="mono">—</span></span>
+            <span style="display:flex; align-items:center; gap:4px;"><span style="width:8px;height:8px;background:var(--red);border-radius:2px;display:inline-block;"></span><span style="color:var(--muted);">Losses: </span><span id="s-loss" class="mono">—</span></span>
+          </div>
+        </div>
+        <div id="sequenceTimeline" class="flex gap-1 overflow-x-auto py-1 scrollbar" style="min-height:28px; flex-wrap:wrap; max-height:72px;"></div>
+      </div>
+      <!-- Charts -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="card p-4" style="height:280px; display:flex; flex-direction:column;">
+          <p style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; margin-bottom:8px;">Equity Curve + DD Floor</p>
+          <div style="flex:1; min-height:0;"><canvas id="equityChart"></canvas></div>
+        </div>
+        <div class="card p-4" style="height:280px; display:flex; flex-direction:column;">
+          <p style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; margin-bottom:8px;">Monte Carlo Envelope (500)</p>
+          <div style="flex:1; min-height:0;"><canvas id="monteCarloChart"></canvas></div>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="card p-4" style="height:280px; display:flex; flex-direction:column;">
+          <p style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; margin-bottom:8px;">PnL + Cumulative Overlay</p>
+          <div style="flex:1; min-height:0;"><canvas id="distributionChart"></canvas></div>
+        </div>
+        <div class="card p-4" style="height:280px; display:flex; flex-direction:column;">
+          <p style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; margin-bottom:8px;">R-Multiple Distribution</p>
+          <div style="flex:1; min-height:0;"><canvas id="histogramChart"></canvas></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 2: FIRM DIRECTORY -->
+<div id="tab-firms" class="section">
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+    <div>
+      <h2 style="font-size:18px; font-weight:800;">Prop Firm Directory & Deep Analysis</h2>
+      <p style="font-size:11px; color:var(--muted); margin-top:3px;">Comprehensive breakdowns of rules, payouts, scaling, and unique features. Use code <span class="mono" style="color:var(--purple); font-weight:700;">EDGE</span> for discounts.</p>
+    </div>
+    <div style="display:flex; gap:6px;">
+      <button onclick="filterFirms('all')" id="fd-all" class="tab-btn active" style="padding:5px 14px; font-size:11px;">All Firms</button>
+      <button onclick="filterFirms('futures')" id="fd-futures" class="tab-btn" style="padding:5px 14px; font-size:11px;">Futures</button>
+      <button onclick="filterFirms('forex')" id="fd-forex" class="tab-btn" style="padding:5px 14px; font-size:11px;">Forex/CFD</button>
+    </div>
+  </div>
+  <div id="firmDirectoryGrid" class="grid grid-cols-1 lg:grid-cols-2 gap-5"></div>
+</div>
+
+<!-- TAB 3: SMART MATCHER -->
+<div id="tab-match" class="section">
+  <div class="grid grid-cols-1 xl:grid-cols-12 gap-5">
+    <div class="xl:col-span-4 space-y-4">
+      <div class="card p-5 space-y-3">
+        <h3 style="font-size:14px; font-weight:700;">Trading Style Profile</h3>
+        <p style="font-size:11px; color:var(--muted);">Enter your parameters to find the best matching prop firm.</p>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label>Win Rate %</label><input type="number" id="m-wr-in" value="60" class="inp"></div>
+          <div><label>Risk:Reward</label><input type="number" id="m-rr-in" value="1.5" step="0.1" class="inp"></div>
+          <div><label>Risk/Trade %</label><input type="number" id="m-risk-in" value="0.5" step="0.1" class="inp"></div>
+          <div><label>Trades/Day</label><input type="number" id="m-tpd-in" value="3" class="inp"></div>
+        </div>
+        <div><label>Preferred DD Type</label>
+          <select id="m-dd-in" class="inp">
+            <option value="any">No Preference</option>
+            <option value="static">Static Floor</option>
+            <option value="eod">End-of-Day Trailing</option>
+            <option value="trailing">Intraday Trailing</option>
+          </select>
+        </div>
+        <div><label>Consistency Tolerance</label>
+          <select id="m-cons-in" class="inp">
+            <option value="any">Any</option>
+            <option value="none">No consistency rule preferred</option>
+            <option value="relaxed">Relaxed (40%+)</option>
+            <option value="strict">Can handle strict (20-30%)</option>
+          </select>
+        </div>
+        <div><label>Min Days Tolerance</label>
+          <select id="m-days-in" class="inp">
+            <option value="any">Any</option>
+            <option value="quick">Quick pass (0-3 days)</option>
+            <option value="moderate">Moderate (4-7 days)</option>
+            <option value="extended">Extended (8+ days)</option>
+          </select>
+        </div>
+        <div><label>Market Type</label>
+          <select id="m-market-in" class="inp">
+            <option value="all">All Markets</option>
+            <option value="futures">Futures Only</option>
+            <option value="forex">Forex / CFD Only</option>
+          </select>
+        </div>
+        <button onclick="runMatcher()" class="btn-secondary">🎯 Find My Best Firms</button>
+      </div>
+      <div class="card p-5">
+        <h4 style="font-size:12px; font-weight:700; margin-bottom:10px;">Scoring Algorithm</h4>
+        <div class="space-y-2" style="font-size:11px; color:var(--muted);">
+          <p>• <b style="color:var(--text);">Target Achievability (30pts)</b> — WR + RR vs required return</p>
+          <p>• <b style="color:var(--text);">DD Type Fit (25pts)</b> — Preference vs mechanism</p>
+          <p>• <b style="color:var(--text);">Consistency Fit (20pts)</b> — Rule compatibility</p>
+          <p>• <b style="color:var(--text);">Min Days Fit (15pts)</b> — Pace alignment</p>
+          <p>• <b style="color:var(--text);">Rule Leniency (10pts)</b> — Overall strictness</p>
+        </div>
+      </div>
+    </div>
+    <div class="xl:col-span-8">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+        <h3 style="font-size:14px; font-weight:700;">Matched Firms</h3>
+        <span id="matchCount" style="font-size:11px; color:var(--muted);">Run matcher to see results</span>
+      </div>
+      <div id="matchResults" class="space-y-3">
+        <div class="card p-8 text-center" style="color:var(--muted);"><p style="font-size:13px;">Configure your profile and click <b style="color:var(--text);">Find My Best Firms</b></p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 4: CALCULATORS -->
+<div id="tab-calc" class="section">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+    <!-- Position Size Calculator -->
+    <div class="card p-5 space-y-4">
+      <div>
+        <h3 style="font-size:14px; font-weight:700;">Position Size Calculator</h3>
+        <p style="font-size:11px; color:var(--muted); margin-top:2px;">Calculate optimal position size for your eval.</p>
+      </div>
+      <div class="space-y-3">
+        <div><label>Account Balance ($)</label><input type="number" id="calc-bal" value="50000" class="inp"></div>
+        <div><label>Risk Per Trade (%)</label><input type="number" id="calc-risk" value="0.5" step="0.1" class="inp"></div>
+        <div><label>Stop Loss (ticks/pips)</label><input type="number" id="calc-sl" value="10" class="inp"></div>
+        <div><label>Tick/Pip Value ($)</label><input type="number" id="calc-tv" value="12.5" step="0.5" class="inp"></div>
+        <button onclick="calcPosition()" class="btn-primary">Calculate Size</button>
+      </div>
+      <div id="calcResult" class="detail-section" style="display:none;"></div>
+    </div>
+    <!-- Profit Target Calculator -->
+    <div class="card p-5 space-y-4">
+      <div>
+        <h3 style="font-size:14px; font-weight:700;">Target Roadmap Calculator</h3>
+        <p style="font-size:11px; color:var(--muted); margin-top:2px;">How many trades to hit your target?</p>
+      </div>
+      <div class="space-y-3">
+        <div><label>Profit Target ($)</label><input type="number" id="road-target" value="3000" class="inp"></div>
+        <div><label>Win Rate (%)</label><input type="number" id="road-wr" value="60" class="inp"></div>
+        <div><label>Avg Win ($)</label><input type="number" id="road-avgw" value="200" class="inp"></div>
+        <div><label>Avg Loss ($)</label><input type="number" id="road-avgl" value="120" class="inp"></div>
+        <div><label>Trades Per Day</label><input type="number" id="road-tpd" value="3" class="inp"></div>
+        <button onclick="calcRoadmap()" class="btn-primary">Calculate Roadmap</button>
+      </div>
+      <div id="roadResult" class="detail-section" style="display:none;"></div>
+    </div>
+    <!-- Payout Calculator -->
+    <div class="card p-5 space-y-4">
+      <div>
+        <h3 style="font-size:14px; font-weight:700;">Payout & ROI Calculator</h3>
+        <p style="font-size:11px; color:var(--muted); margin-top:2px;">Estimate payout and return on investment.</p>
+      </div>
+      <div class="space-y-3">
+        <div><label>Eval Fee Paid ($)</label><input type="number" id="pay-fee" value="350" class="inp"></div>
+        <div><label>Funded Account Size ($)</label><input type="number" id="pay-funded" value="50000" class="inp"></div>
+        <div><label>Monthly Profit (%)</label><input type="number" id="pay-profit" value="5" step="0.5" class="inp"></div>
+        <div><label>Payout Split (%)</label><input type="number" id="pay-split" value="90" class="inp"></div>
+        <div><label>Months Funded</label><input type="number" id="pay-months" value="6" class="inp"></div>
+        <button onclick="calcPayout()" class="btn-primary">Calculate Payout</button>
+      </div>
+      <div id="payResult" class="detail-section" style="display:none;"></div>
+    </div>
+  </div>
+  <!-- Promo Banner -->
+  <div class="promo-banner mt-5" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+    <div>
+      <span style="font-size:13px; font-weight:700;">Save on Evaluations</span>
+      <p style="font-size:11px; color:var(--muted); margin-top:2px;">Use code <span class="mono" style="color:var(--purple); font-weight:800; font-size:14px;">EDGE</span> at checkout for exclusive discounts on supported firms.</p>
+    </div>
+    <div class="badge badge-p" style="font-size:12px; padding:8px 16px;">CODE: EDGE</div>
+  </div>
+</div>
+
+<!-- TAB 5: EVAL TRACKER -->
+<div id="tab-tracker" class="section">
+  <div class="grid grid-cols-1 xl:grid-cols-12 gap-5">
+    <div class="xl:col-span-4 space-y-4">
+      <div class="card p-5 space-y-3">
+        <h3 style="font-size:14px; font-weight:700;">Add Evaluation</h3>
+        <p style="font-size:11px; color:var(--muted);">Track your active evaluations and progress.</p>
+        <div><label>Firm Name</label>
+          <select id="track-firm" class="inp"></select>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label>Account Size</label><input type="number" id="track-size" value="50000" class="inp"></div>
+          <div><label>Profit Target</label><input type="number" id="track-target" value="3000" class="inp"></div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label>Max DD</label><input type="number" id="track-dd" value="2000" class="inp"></div>
+          <div><label>Current PnL</label><input type="number" id="track-pnl" value="0" class="inp"></div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label>Days Traded</label><input type="number" id="track-days" value="0" class="inp"></div>
+          <div><label>Status</label>
+            <select id="track-status" class="inp">
+              <option value="active">Active</option>
+              <option value="passed">Passed</option>
+              <option value="failed">Failed</option>
+            </select>
+          </div>
+        </div>
+        <button onclick="addEval()" class="btn-secondary">+ Add Evaluation</button>
+      </div>
+      <!-- Tracker Stats -->
+      <div class="card p-5">
+        <h4 style="font-size:12px; font-weight:700; margin-bottom:12px;">Lifetime Stats</h4>
+        <div class="space-y-2 mono" style="font-size:12px;">
+          <div style="display:flex; justify-content:space-between;"><span style="color:var(--muted);">Total Evals:</span><span id="ts-total">0</span></div>
+          <div style="display:flex; justify-content:space-between;"><span style="color:var(--muted);">Passed:</span><span id="ts-passed" style="color:var(--green);">0</span></div>
+          <div style="display:flex; justify-content:space-between;"><span style="color:var(--muted);">Failed:</span><span id="ts-failed" style="color:var(--red);">0</span></div>
+          <div style="display:flex; justify-content:space-between;"><span style="color:var(--muted);">Active:</span><span id="ts-active" style="color:var(--blue);">0</span></div>
+          <div style="display:flex; justify-content:space-between;"><span style="color:var(--muted);">Pass Rate:</span><span id="ts-rate" style="color:var(--amber);">—</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="xl:col-span-8">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+        <h3 style="font-size:14px; font-weight:700;">Active & Completed Evaluations</h3>
+        <button onclick="clearEvals()" style="font-size:10px; color:var(--red); background:var(--red-dim); border:1px solid rgba(239,68,68,0.3); border-radius:6px; padding:5px 12px; cursor:pointer; font-weight:600;">Clear All</button>
+      </div>
+      <div id="trackerList" class="space-y-3">
+        <div class="card p-6 text-center" style="color:var(--muted);"><p>No evaluations tracked yet. Add one from the left panel.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
