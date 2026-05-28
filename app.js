@@ -1,9 +1,58 @@
 // ============================================================
-// FIRM DATABASE — PropFirmEdge v3.0
+// PropFirmEdge v3.0 — Professional Trading Intelligence
+// ============================================================
+
+// THEME TOGGLE
+const themeToggle = document.getElementById('themeToggle');
+const html = document.documentElement;
+const savedTheme = localStorage.getItem('pfe-theme') || 'dark';
+html.setAttribute('data-theme', savedTheme);
+updateThemeIcon();
+
+themeToggle.addEventListener('click', () => {
+  const current = html.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('pfe-theme', next);
+  updateThemeIcon();
+});
+
+function updateThemeIcon() {
+  const knob = themeToggle.querySelector('.theme-toggle-knob');
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  knob.innerHTML = isDark
+    ? '<i class="fas fa-moon" style="font-size:9px;"></i>'
+    : '<i class="fas fa-sun" style="font-size:9px;"></i>';
+}
+
+// TAB NAVIGATION
+document.querySelectorAll('#mainNav .nav-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#mainNav .nav-tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    btn.classList.add('active');
+    const tab = btn.getAttribute('data-tab');
+    document.getElementById('tab-' + tab).classList.add('active');
+    if (tab === 'firms') renderFirmDirectory('all');
+  });
+});
+
+// Firm filter buttons
+document.getElementById('firmFilterBtns').addEventListener('click', e => {
+  if (e.target.classList.contains('nav-tab')) {
+    document.querySelectorAll('#firmFilterBtns .nav-tab').forEach(b => b.classList.remove('active'));
+    e.target.classList.add('active');
+    renderFirmDirectory(e.target.getAttribute('data-filter'));
+  }
+});
+
+
+// ============================================================
+// FIRM DATABASE
 // ============================================================
 const FIRMS = {
   topstep: {
-    name: "Topstep", cat: "futures", color: "#4da6ff",
+    name: "Topstep", cat: "futures", color: "#3b82f6",
     payout: 90, maxPayout: 90, maxFunded: 300000, scaling: true,
     refund: false, newsTrading: true, weekendHold: false, ea: false,
     feature: "90% payout from day 1, no consistency rule",
@@ -16,11 +65,11 @@ const FIRMS = {
     }
   },
   apex: {
-    name: "Apex Trader Funding", cat: "futures", color: "#f5a623",
+    name: "Apex Trader Funding", cat: "futures", color: "#f59e0b",
     payout: 100, maxPayout: 100, maxFunded: 300000, scaling: false,
     refund: false, newsTrading: true, weekendHold: false, ea: true,
     feature: "100% of first $25K profit, then 90%",
-    description: "Aggressive payout structure with trailing drawdown. Best for traders who can manage intraday equity swings and want maximum payout on initial profits.",
+    description: "Aggressive payout structure with trailing drawdown. Best for traders who can manage intraday equity swings.",
     promoCode: "EDGE", promoDiscount: "80% off",
     sizes: {
       "25000":  { "Full Trailing": { target: 1500, maxDD: 1500, daily: 99999, type: "trailing", consistency: "0", minDays: 7 } },
@@ -31,11 +80,11 @@ const FIRMS = {
     }
   },
   myfundedfutures: {
-    name: "MyFundedFutures", cat: "futures", color: "#22d06c",
+    name: "MyFundedFutures", cat: "futures", color: "#22c55e",
     payout: 90, maxPayout: 90, maxFunded: 200000, scaling: false,
     refund: true, newsTrading: true, weekendHold: false, ea: true,
     feature: "Eval fee refunded on first payout",
-    description: "Offers both EOD and Static drawdown options. The fee refund policy makes this extremely cost-effective for skilled traders who pass on the first attempt.",
+    description: "Offers both EOD and Static DD options. Fee refund makes this cost-effective for skilled traders.",
     promoCode: "EDGE", promoDiscount: "10% off",
     sizes: {
       "50000": {
@@ -48,31 +97,30 @@ const FIRMS = {
       }
     }
   },
-
   lucid: {
-    name: "Lucid Markets", cat: "futures", color: "#a855f7",
+    name: "Lucid Markets", cat: "futures", color: "#8b5cf6",
     payout: 85, maxPayout: 90, maxFunded: 250000, scaling: true,
     refund: false, newsTrading: false, weekendHold: false, ea: false,
     feature: "Flex or direct allocation paths",
-    description: "Two distinct paths: Flex Challenge with lenient static DD, or Direct Allocation with tighter trailing rules for experienced traders seeking faster funding.",
+    description: "Two paths: Flex Challenge with lenient static DD, or Direct Allocation for experienced traders.",
     promoCode: "EDGE", promoDiscount: "15% off",
     sizes: {
       "50000": {
-        "Lucid Flex Challenge": { target: 3000, maxDD: 2500, daily: 1500, type: "static", consistency: "50", minDays: 0 },
-        "Lucid Direct Allocation": { target: 4000, maxDD: 2000, daily: 1000, type: "trailing", consistency: "20", minDays: 3 }
+        "Lucid Flex": { target: 3000, maxDD: 2500, daily: 1500, type: "static", consistency: "50", minDays: 0 },
+        "Direct Allocation": { target: 4000, maxDD: 2000, daily: 1000, type: "trailing", consistency: "20", minDays: 3 }
       },
       "100000": {
-        "Lucid Flex Challenge": { target: 6000, maxDD: 5000, daily: 3000, type: "static", consistency: "50", minDays: 0 },
-        "Lucid Direct Allocation": { target: 8000, maxDD: 4000, daily: 2000, type: "trailing", consistency: "20", minDays: 3 }
+        "Lucid Flex": { target: 6000, maxDD: 5000, daily: 3000, type: "static", consistency: "50", minDays: 0 },
+        "Direct Allocation": { target: 8000, maxDD: 4000, daily: 2000, type: "trailing", consistency: "20", minDays: 3 }
       }
     }
   },
   takeprofit: {
-    name: "Take Profit Trader", cat: "futures", color: "#38bdf8",
+    name: "Take Profit Trader", cat: "futures", color: "#06b6d4",
     payout: 80, maxPayout: 80, maxFunded: 200000, scaling: false,
     refund: false, newsTrading: true, weekendHold: false, ea: false,
-    feature: "Simple EOD rules, no consistency",
-    description: "Straightforward EOD trailing with no consistency rule. Ideal for consistent traders who want predictable rule sets without profit concentration caps.",
+    feature: "Simple EOD rules, no consistency requirement",
+    description: "Straightforward EOD trailing with no consistency rule. Ideal for predictable trading.",
     promoCode: "EDGE", promoDiscount: "15% off",
     sizes: {
       "25000":  { "Standard": { target: 1500, maxDD: 1500, daily: 750, type: "eod", consistency: "0", minDays: 5 } },
@@ -82,11 +130,11 @@ const FIRMS = {
     }
   },
   tradeify: {
-    name: "Tradeify", cat: "futures", color: "#f04b6a",
+    name: "Tradeify", cat: "futures", color: "#ef4444",
     payout: 90, maxPayout: 90, maxFunded: 150000, scaling: false,
     refund: false, newsTrading: true, weekendHold: false, ea: false,
     feature: "No daily loss limit, trailing DD only",
-    description: "Unique in having no daily loss limit — only a trailing drawdown. Perfect for aggressive intraday traders who sometimes have large red candles but recover quickly.",
+    description: "No daily loss limit — only trailing drawdown. Perfect for aggressive intraday traders.",
     promoCode: "EDGE", promoDiscount: "20% off",
     sizes: {
       "25000":  { "Standard": { target: 1500, maxDD: 1500, daily: 99999, type: "trailing", consistency: "0", minDays: 0 } },
@@ -94,13 +142,12 @@ const FIRMS = {
       "100000": { "Standard": { target: 6000, maxDD: 3000, daily: 99999, type: "trailing", consistency: "0", minDays: 0 } }
     }
   },
-
   earn2trade: {
     name: "Earn2Trade", cat: "futures", color: "#fb923c",
     payout: 80, maxPayout: 80, maxFunded: 150000, scaling: true,
     refund: false, newsTrading: false, weekendHold: false, ea: false,
-    feature: "Scaling plan up to $400K, educational resources",
-    description: "Best for developing traders — includes educational resources and a progressive scaling plan. Longer minimum days requirement but generous growth path.",
+    feature: "Scaling plan up to $400K, educational focus",
+    description: "Best for developing traders with educational resources and progressive scaling.",
     promoCode: "EDGE", promoDiscount: "10% off",
     sizes: {
       "50000":  { "Gauntlet Mini": { target: 3000, maxDD: 2000, daily: 1000, type: "eod", consistency: "0", minDays: 15 } },
@@ -108,11 +155,11 @@ const FIRMS = {
     }
   },
   ftmo: {
-    name: "FTMO", cat: "forex", color: "#4da6ff",
+    name: "FTMO", cat: "forex", color: "#3b82f6",
     payout: 80, maxPayout: 90, maxFunded: 400000, scaling: true,
     refund: true, newsTrading: false, weekendHold: true, ea: true,
-    feature: "Free trial, refund on first withdrawal, up to 90%",
-    description: "The gold standard in forex prop trading. Static drawdown, free trial available, fee refund on first payout, and scaling up to $2M. Weekend holds and EAs permitted.",
+    feature: "Free trial, fee refund, scaling to $2M",
+    description: "The gold standard in forex prop. Static DD, fee refund on first payout, scaling up to $2M.",
     promoCode: "EDGE", promoDiscount: "10% off",
     sizes: {
       "10000":  { "FTMO Challenge": { target: 1000, maxDD: 1000, daily: 500, type: "static", consistency: "0", minDays: 4 } },
@@ -124,26 +171,25 @@ const FIRMS = {
     }
   },
   thefundedtrader: {
-    name: "The Funded Trader", cat: "forex", color: "#22d06c",
+    name: "The Funded Trader", cat: "forex", color: "#22c55e",
     payout: 80, maxPayout: 90, maxFunded: 600000, scaling: true,
     refund: false, newsTrading: false, weekendHold: true, ea: true,
-    feature: "Up to $600K funded, aggressive scaling plan",
-    description: "One of the highest funded account caps in the industry. Aggressive scaling lets skilled traders grow rapidly. Weekend holds and EA/bot trading permitted.",
+    feature: "Up to $600K funded, aggressive scaling",
+    description: "Highest funded account cap. Aggressive scaling for skilled traders.",
     promoCode: "EDGE", promoDiscount: "15% off",
     sizes: {
-      "25000":  { "Standard Challenge": { target: 2500, maxDD: 1500, daily: 750, type: "static", consistency: "0", minDays: 5 } },
-      "50000":  { "Standard Challenge": { target: 5000, maxDD: 3000, daily: 1500, type: "static", consistency: "0", minDays: 5 } },
-      "100000": { "Standard Challenge": { target: 10000, maxDD: 6000, daily: 3000, type: "static", consistency: "0", minDays: 5 } },
-      "200000": { "Standard Challenge": { target: 20000, maxDD: 12000, daily: 6000, type: "static", consistency: "0", minDays: 5 } }
+      "25000":  { "Standard": { target: 2500, maxDD: 1500, daily: 750, type: "static", consistency: "0", minDays: 5 } },
+      "50000":  { "Standard": { target: 5000, maxDD: 3000, daily: 1500, type: "static", consistency: "0", minDays: 5 } },
+      "100000": { "Standard": { target: 10000, maxDD: 6000, daily: 3000, type: "static", consistency: "0", minDays: 5 } },
+      "200000": { "Standard": { target: 20000, maxDD: 12000, daily: 6000, type: "static", consistency: "0", minDays: 5 } }
     }
   },
-
   e8funding: {
-    name: "E8 Funding", cat: "forex", color: "#a855f7",
+    name: "E8 Funding", cat: "forex", color: "#8b5cf6",
     payout: 80, maxPayout: 85, maxFunded: 400000, scaling: true,
     refund: false, newsTrading: true, weekendHold: true, ea: true,
     feature: "News trading allowed, weekend holds OK",
-    description: "Permissive rules: news trading, weekend holds, and EAs all allowed. No minimum trading days. Static drawdown makes risk management straightforward.",
+    description: "Permissive rules: news, weekend holds, and EAs all allowed. No minimum days.",
     promoCode: "EDGE", promoDiscount: "15% off",
     sizes: {
       "25000":  { "E8 Evaluation": { target: 2000, maxDD: 2000, daily: 1000, type: "static", consistency: "0", minDays: 0 } },
@@ -152,11 +198,11 @@ const FIRMS = {
     }
   },
   fundedpips: {
-    name: "Funding Pips", cat: "forex", color: "#38bdf8",
+    name: "Funding Pips", cat: "forex", color: "#06b6d4",
     payout: 80, maxPayout: 80, maxFunded: 200000, scaling: false,
     refund: false, newsTrading: false, weekendHold: false, ea: false,
-    feature: "No minimum trading days, fast pass possible",
-    description: "Zero minimum days means you can pass in a single session if you hit the target. Clean static drawdown with no news trading restriction workarounds needed.",
+    feature: "No minimum trading days — fast pass possible",
+    description: "Zero minimum days means you can pass in a single session.",
     promoCode: "EDGE", promoDiscount: "10% off",
     sizes: {
       "25000":  { "Standard": { target: 2000, maxDD: 1500, daily: 750, type: "static", consistency: "0", minDays: 0 } },
@@ -168,8 +214,8 @@ const FIRMS = {
     name: "FundedNext", cat: "forex", color: "#fb923c",
     payout: 90, maxPayout: 95, maxFunded: 300000, scaling: true,
     refund: false, newsTrading: false, weekendHold: true, ea: true,
-    feature: "15% of eval phase profits + up to 95% funded",
-    description: "Unique model: earn 15% of profits made during evaluation phase. Up to 95% payout when funded with aggressive scaling. Weekend holds and EA trading allowed.",
+    feature: "15% of eval profits + up to 95% funded payout",
+    description: "Earn 15% of eval phase profits. Up to 95% payout funded with aggressive scaling.",
     promoCode: "EDGE", promoDiscount: "20% off",
     sizes: {
       "15000":  { "Express": { target: 1500, maxDD: 750, daily: 300, type: "static", consistency: "0", minDays: 0 } },
@@ -182,18 +228,7 @@ const FIRMS = {
 
 
 // ============================================================
-// TAB SWITCHING
-// ============================================================
-function switchTab(name, btn) {
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('header .tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.add('active');
-  btn.classList.add('active');
-  if (name === 'firms') renderFirmDirectory('all');
-}
-
-// ============================================================
-// FIRM DROPDOWN INIT
+// FIRM DROPDOWN & PRESETS
 // ============================================================
 function initFirmDropdown() {
   const sel = document.getElementById('propFirm');
@@ -205,7 +240,6 @@ function initFirmDropdown() {
     FIRMS[k].cat === 'futures' ? fg.appendChild(o) : xg.appendChild(o);
   });
   sel.appendChild(fg); sel.appendChild(xg);
-  // Also init tracker dropdown
   const ts = document.getElementById('track-firm');
   ts.innerHTML = '';
   Object.keys(FIRMS).forEach(k => {
@@ -241,7 +275,6 @@ function updateTypes() {
   applyPreset();
 }
 
-
 function applyPreset() {
   const k = document.getElementById('propFirm').value;
   const sz = document.getElementById('propSize').value;
@@ -265,6 +298,7 @@ function breakToCustom() {
   document.getElementById('propType').innerHTML = '<option value="custom">Manual</option>';
 }
 
+
 // ============================================================
 // SIMULATION ENGINE
 // ============================================================
@@ -284,43 +318,35 @@ function simulate(capital, wr, rr, riskPct, numTrades, dailyLoss, maxDD, ddType)
     let pnl = Math.random() <= wr
       ? baseRisk * rr * (0.94 + Math.random() * 0.12)
       : -(baseRisk * (0.98 + Math.random() * 0.04));
-
     if (pnl > 0) { gp += pnl; sumW += pnl; wins++; seq.push('W'); if (pnl > hiWin) hiWin = pnl; }
     else { gl += Math.abs(pnl); sumL += Math.abs(pnl); losses++; seq.push('L'); }
-
     pnlHist.push(pnl);
-    bal += pnl;
-    curve.push(bal);
-    dayPnl += pnl;
-
+    bal += pnl; curve.push(bal); dayPnl += pnl;
     if (dayPnl < 0 && Math.abs(dayPnl) >= dailyLoss) failReason = "DAILY_LOSS";
-
     if ((i + 1) % 3 === 0 || i === numTrades - 1) {
       days++;
       if (dayPnl > 0) winDays++; else if (dayPnl < 0) lossDays++;
       if (ddType === 'eod' && bal > dayStart) dayStart = bal;
       dayPnl = 0;
     }
-
     if (bal > peak) peak = bal;
-    let dd = ddType === 'trailing' ? peak - bal
-           : ddType === 'eod' ? dayStart - bal
-           : capital - bal;
+    let dd = ddType === 'trailing' ? peak - bal : ddType === 'eod' ? dayStart - bal : capital - bal;
     ddFloor.push(ddType === 'trailing' ? peak - maxDD : ddType === 'eod' ? dayStart - maxDD : capital - maxDD);
     if (dd > worstDD) worstDD = dd;
     if ((peak - bal) / peak > peakDDpct) peakDDpct = (peak - bal) / peak;
     if (dd >= maxDD) failReason = "MAX_DD";
   }
-
   return { curve, pnlHist, ddFloor, peakDDpct, worstDD, gp, gl, seq, wins, losses, winDays, lossDays, days, totalExec,
-    avgW: wins === 0 ? 0 : sumW / wins, avgL: losses === 0 ? 0 : sumL / losses,
-    hiWin, failReason };
+    avgW: wins === 0 ? 0 : sumW / wins, avgL: losses === 0 ? 0 : sumL / losses, hiWin, failReason };
 }
-
 
 let chartInstances = {};
 function destroyChart(id) { if (chartInstances[id]) { chartInstances[id].destroy(); delete chartInstances[id]; } }
 
+
+// ============================================================
+// RUN SIMULATION
+// ============================================================
 function runSim() {
   const capital = parseFloat(document.getElementById('capital').value) || 50000;
   const wr = parseFloat(document.getElementById('winRate').value) / 100;
@@ -339,16 +365,15 @@ function runSim() {
   const pf = path.gl === 0 ? '∞' : (path.gp / path.gl).toFixed(2);
   const expectancy = (wr * (capital * riskPct * rr)) - ((1 - wr) * (capital * riskPct));
 
-  // Update stats
   document.getElementById('m-equity').textContent = (netPnL >= 0 ? '+$' : '-$') + Math.abs(netPnL).toLocaleString(undefined, {maximumFractionDigits: 0});
-  document.getElementById('m-equity').style.color = netPnL >= 0 ? 'var(--green)' : 'var(--red)';
+  document.getElementById('m-equity').style.color = netPnL >= 0 ? 'var(--accent-green)' : 'var(--accent-red)';
   document.getElementById('m-expectancy').textContent = '$' + expectancy.toLocaleString(undefined, {maximumFractionDigits: 0});
   document.getElementById('m-drawdown').textContent = (path.peakDDpct * 100).toFixed(2) + '%';
   document.getElementById('m-pf').textContent = pf;
-  document.getElementById('m-pf').style.color = parseFloat(pf) > 1 ? 'var(--green)' : 'var(--red)';
+  document.getElementById('m-pf').style.color = parseFloat(pf) > 1 ? 'var(--accent-green)' : 'var(--accent-red)';
   document.getElementById('m-wr').textContent = ((path.wins / path.totalExec) * 100).toFixed(1) + '%';
   document.getElementById('m-avgwl').textContent = '$' + Math.round(path.avgW) + ' / $' + Math.round(path.avgL);
-  document.getElementById('m-wdays').textContent = path.winDays + ' / ' + path.days + ' days';
+  document.getElementById('m-wdays').textContent = path.winDays + ' / ' + path.days;
   document.getElementById('m-hiwin').textContent = '$' + Math.round(path.hiWin).toLocaleString();
   document.getElementById('s-win').textContent = path.wins;
   document.getElementById('s-loss').textContent = path.losses;
@@ -359,7 +384,7 @@ function runSim() {
   path.seq.forEach(s => {
     const b = document.createElement('div');
     b.className = 'seq-block';
-    b.style.background = s === 'W' ? 'var(--green)' : 'var(--red)';
+    b.style.background = s === 'W' ? 'var(--accent-green)' : 'var(--accent-red)';
     b.textContent = s;
     seqEl.appendChild(b);
   });
@@ -367,42 +392,33 @@ function runSim() {
   // Audit
   const consPassed = consPct <= 0 || netPnL <= 0 || (path.hiWin / netPnL * 100) <= consPct;
   const daysPassed = path.days >= minDays;
-  const ddPassed = !path.failReason || path.failReason !== 'MAX_DD';
-  const dailyOk = !path.failReason || path.failReason !== 'DAILY_LOSS';
   const targetMet = netPnL >= target;
-
   const auditBox = document.getElementById('auditStatusBox');
+
   if (path.failReason === 'MAX_DD') {
-    auditBox.innerHTML = `<div><span style="font-size:11px;font-weight:700;color:var(--red);text-transform:uppercase;">BREACHED — Max Drawdown</span><p style="font-size:10px;color:var(--muted);margin-top:2px;">Account wiped.</p></div><div style="width:28px;height:28px;border-radius:50%;background:var(--red-dim);display:flex;align-items:center;justify-content:center;color:var(--red);font-weight:700;">✕</div>`;
-    auditBox.style.borderColor = 'rgba(239,68,68,0.3)'; auditBox.style.background = 'var(--red-dim)';
+    auditBox.innerHTML = `<div><span style="font-size:12px;font-weight:700;color:var(--accent-red);">BREACHED — Max Drawdown</span><p style="font-size:11px;color:var(--text-muted);margin-top:2px;">Account exceeded maximum drawdown limit.</p></div><div style="width:28px;height:28px;border-radius:50%;background:var(--red-bg);display:flex;align-items:center;justify-content:center;color:var(--accent-red);font-weight:700;">✕</div>`;
   } else if (path.failReason === 'DAILY_LOSS') {
-    auditBox.innerHTML = `<div><span style="font-size:11px;font-weight:700;color:var(--red);text-transform:uppercase;">BREACHED — Daily Loss</span><p style="font-size:10px;color:var(--muted);margin-top:2px;">Daily cap exceeded.</p></div><div style="width:28px;height:28px;border-radius:50%;background:var(--red-dim);display:flex;align-items:center;justify-content:center;color:var(--red);font-weight:700;">✕</div>`;
-    auditBox.style.borderColor = 'rgba(239,68,68,0.3)'; auditBox.style.background = 'var(--red-dim)';
+    auditBox.innerHTML = `<div><span style="font-size:12px;font-weight:700;color:var(--accent-red);">BREACHED — Daily Loss</span><p style="font-size:11px;color:var(--text-muted);margin-top:2px;">Daily loss limit exceeded.</p></div><div style="width:28px;height:28px;border-radius:50%;background:var(--red-bg);display:flex;align-items:center;justify-content:center;color:var(--accent-red);font-weight:700;">✕</div>`;
   } else if (!targetMet) {
-    auditBox.innerHTML = `<div><span style="font-size:11px;font-weight:700;color:var(--amber);text-transform:uppercase;">Target Not Reached</span><p style="font-size:10px;color:var(--muted);margin-top:2px;">Rules clean but target not met.</p></div><div style="width:28px;height:28px;border-radius:50%;background:var(--amber-dim);display:flex;align-items:center;justify-content:center;color:var(--amber);font-weight:700;">!</div>`;
-    auditBox.style.borderColor = 'rgba(245,158,11,0.3)'; auditBox.style.background = 'var(--amber-dim)';
+    auditBox.innerHTML = `<div><span style="font-size:12px;font-weight:700;color:var(--accent-amber);">Target Not Reached</span><p style="font-size:11px;color:var(--text-muted);margin-top:2px;">Rules clean but target not met.</p></div><div style="width:28px;height:28px;border-radius:50%;background:var(--amber-bg);display:flex;align-items:center;justify-content:center;color:var(--accent-amber);font-weight:700;">!</div>`;
   } else if (!consPassed) {
-    auditBox.innerHTML = `<div><span style="font-size:11px;font-weight:700;color:var(--amber);text-transform:uppercase;">Consistency Violation</span><p style="font-size:10px;color:var(--muted);margin-top:2px;">Profit concentration cap breached.</p></div><div style="width:28px;height:28px;border-radius:50%;background:var(--amber-dim);display:flex;align-items:center;justify-content:center;color:var(--amber);font-weight:700;">!</div>`;
-    auditBox.style.borderColor = 'rgba(245,158,11,0.3)'; auditBox.style.background = 'var(--amber-dim)';
+    auditBox.innerHTML = `<div><span style="font-size:12px;font-weight:700;color:var(--accent-amber);">Consistency Violation</span><p style="font-size:11px;color:var(--text-muted);margin-top:2px;">Profit concentration exceeds cap.</p></div><div style="width:28px;height:28px;border-radius:50%;background:var(--amber-bg);display:flex;align-items:center;justify-content:center;color:var(--accent-amber);font-weight:700;">!</div>`;
   } else if (!daysPassed) {
-    auditBox.innerHTML = `<div><span style="font-size:11px;font-weight:700;color:var(--amber);text-transform:uppercase;">Min Days Not Met</span><p style="font-size:10px;color:var(--muted);margin-top:2px;">Need more trading days.</p></div><div style="width:28px;height:28px;border-radius:50%;background:var(--amber-dim);display:flex;align-items:center;justify-content:center;color:var(--amber);font-weight:700;">!</div>`;
-    auditBox.style.borderColor = 'rgba(245,158,11,0.3)'; auditBox.style.background = 'var(--amber-dim)';
+    auditBox.innerHTML = `<div><span style="font-size:12px;font-weight:700;color:var(--accent-amber);">Min Days Not Met</span><p style="font-size:11px;color:var(--text-muted);margin-top:2px;">Insufficient trading days.</p></div><div style="width:28px;height:28px;border-radius:50%;background:var(--amber-bg);display:flex;align-items:center;justify-content:center;color:var(--accent-amber);font-weight:700;">!</div>`;
   } else {
-    auditBox.innerHTML = `<div><span style="font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase;">✓ EVAL PASSED</span><p style="font-size:10px;color:var(--muted);margin-top:2px;">All compliance rules verified clean.</p></div><div style="width:28px;height:28px;border-radius:50%;background:var(--green-dim);display:flex;align-items:center;justify-content:center;color:var(--green);font-weight:700;">✓</div>`;
-    auditBox.style.borderColor = 'rgba(16,185,129,0.3)'; auditBox.style.background = 'var(--green-dim)';
+    auditBox.innerHTML = `<div><span style="font-size:12px;font-weight:700;color:var(--accent-green);">✓ EVALUATION PASSED</span><p style="font-size:11px;color:var(--text-muted);margin-top:2px;">All compliance rules verified.</p></div><div style="width:28px;height:28px;border-radius:50%;background:var(--green-bg);display:flex;align-items:center;justify-content:center;color:var(--accent-green);font-weight:700;">✓</div>`;
   }
 
   document.getElementById('auditTarget').textContent = `$${Math.round(netPnL).toLocaleString()} / $${target.toLocaleString()}`;
-  document.getElementById('auditTarget').style.color = targetMet ? 'var(--green)' : 'var(--red)';
+  document.getElementById('auditTarget').style.color = targetMet ? 'var(--accent-green)' : 'var(--accent-red)';
   document.getElementById('auditDD').textContent = `$${Math.round(path.worstDD).toLocaleString()} / $${maxDD.toLocaleString()}`;
-  document.getElementById('auditDD').style.color = ddPassed ? 'var(--green)' : 'var(--red)';
-  const consWeight = netPnL > 0 && consPct > 0 ? (path.hiWin / netPnL * 100).toFixed(1) + '%' : 'N/A';
-  document.getElementById('auditCons').textContent = consWeight;
-  document.getElementById('auditCons').style.color = consPassed ? 'var(--green)' : 'var(--amber)';
-  document.getElementById('auditDaily').textContent = dailyOk ? 'Passed' : 'VIOLATED';
-  document.getElementById('auditDaily').style.color = dailyOk ? 'var(--green)' : 'var(--red)';
+  document.getElementById('auditDD').style.color = !path.failReason ? 'var(--accent-green)' : 'var(--accent-red)';
+  document.getElementById('auditCons').textContent = netPnL > 0 && consPct > 0 ? (path.hiWin / netPnL * 100).toFixed(1) + '%' : 'N/A';
+  document.getElementById('auditCons').style.color = consPassed ? 'var(--accent-green)' : 'var(--accent-amber)';
+  document.getElementById('auditDaily').textContent = path.failReason !== 'DAILY_LOSS' ? 'Passed' : 'VIOLATED';
+  document.getElementById('auditDaily').style.color = path.failReason !== 'DAILY_LOSS' ? 'var(--accent-green)' : 'var(--accent-red)';
   document.getElementById('auditDays').textContent = `${path.days} / ${minDays} required`;
-  document.getElementById('auditDays').style.color = daysPassed ? 'var(--green)' : 'var(--amber)';
+  document.getElementById('auditDays').style.color = daysPassed ? 'var(--accent-green)' : 'var(--accent-amber)';
 
   // Pass Probability
   let passCount = 0;
@@ -415,18 +431,22 @@ function runSim() {
   }
   const pct = (passCount / 500 * 100).toFixed(1);
   document.getElementById('passProb').textContent = pct + '%';
-  document.getElementById('passProb').style.color = pct >= 60 ? 'var(--green)' : pct >= 35 ? 'var(--amber)' : 'var(--red)';
+  document.getElementById('passProb').style.color = pct >= 60 ? 'var(--accent-green)' : pct >= 35 ? 'var(--accent-amber)' : 'var(--accent-red)';
   document.getElementById('probBar').style.width = pct + '%';
-  document.getElementById('probBar').style.background = pct >= 60 ? 'var(--green)' : pct >= 35 ? 'var(--amber)' : 'var(--red)';
-  document.getElementById('probLabel').textContent = pct >= 60 ? 'Strong pass probability — strategy aligns with rules.' : pct >= 35 ? 'Moderate — consider adjusting risk parameters.' : 'Low pass rate — strategy frequently violates rules.';
+  document.getElementById('probBar').style.background = pct >= 60 ? 'var(--accent-green)' : pct >= 35 ? 'var(--accent-amber)' : 'var(--accent-red)';
+  document.getElementById('probLabel').textContent = pct >= 60 ? 'Strong pass probability — strategy aligns with rules.' : pct >= 35 ? 'Moderate — consider adjusting parameters.' : 'Low pass rate — strategy frequently violates rules.';
 
   renderCharts(path, numTrades, capital, riskPct, target, maxDD, ddType, wr, rr);
 }
 
 
+// ============================================================
+// CHARTS
+// ============================================================
 function renderCharts(path, numTrades, capital, riskPct, target, maxDD, ddType, wr, rr) {
-  const grid = 'rgba(255,255,255,0.04)';
-  Chart.defaults.color = '#64748b';
+  const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--border-primary').trim();
+  const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-muted').trim();
+  Chart.defaults.color = textColor;
   Chart.defaults.font.family = "'JetBrains Mono', monospace";
   Chart.defaults.font.size = 10;
 
@@ -437,73 +457,66 @@ function renderCharts(path, numTrades, capital, riskPct, target, maxDD, ddType, 
       labels: path.curve.map((_, i) => i),
       datasets: [
         { label: 'Balance', data: path.curve, borderColor: '#3b82f6', borderWidth: 2, fill: false, pointRadius: 0, tension: 0.2 },
-        { label: 'DD Floor', data: path.ddFloor, borderColor: '#ef4444', borderWidth: 1.5, fill: false, pointRadius: 0 },
-        { label: 'Target', data: new Array(path.curve.length).fill(capital + target), borderColor: '#10b981', borderWidth: 1.5, borderDash: [5, 4], fill: false, pointRadius: 0 }
+        { label: 'DD Floor', data: path.ddFloor, borderColor: '#ef4444', borderWidth: 1.5, fill: false, pointRadius: 0, borderDash: [4,2] },
+        { label: 'Target', data: new Array(path.curve.length).fill(capital + target), borderColor: '#22c55e', borderWidth: 1.5, borderDash: [6,4], fill: false, pointRadius: 0 }
       ]
     },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'top', labels: { boxWidth: 10, font: { size: 9 } } } }, scales: { x: { grid: { color: grid } }, y: { grid: { color: grid } } } }
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'top', labels: { boxWidth: 8, font: { size: 9 } } } }, scales: { x: { display: false }, y: { grid: { color: gridColor } } } }
   });
 
   destroyChart('monteCarloChart');
   const envelopes = [];
-  for (let i = 0; i < 500; i++) {
+  for (let i = 0; i < 200; i++) {
     const p = simulate(capital, wr, rr, riskPct, numTrades, 99999, maxDD * 2, ddType);
-    envelopes.push({ data: p.curve, borderColor: 'rgba(59,130,246,0.04)', borderWidth: 1, fill: false, pointRadius: 0, tension: 0.1 });
+    envelopes.push({ data: p.curve, borderColor: 'rgba(59,130,246,0.06)', borderWidth: 1, fill: false, pointRadius: 0, tension: 0.1 });
   }
   chartInstances['monteCarloChart'] = new Chart(document.getElementById('monteCarloChart'), {
     type: 'line',
     data: { labels: Array.from({ length: numTrades + 1 }, (_, i) => i), datasets: envelopes },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: grid } }, y: { grid: { color: grid } } }, animation: { duration: 0 } }
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: gridColor } } }, animation: { duration: 0 } }
   });
 
   destroyChart('distributionChart');
   chartInstances['distributionChart'] = new Chart(document.getElementById('distributionChart'), {
     data: {
-      labels: path.pnlHist.map((_, i) => `T${i+1}`),
+      labels: path.pnlHist.map((_, i) => i + 1),
       datasets: [
-        { type: 'bar', data: path.pnlHist, backgroundColor: path.pnlHist.map(v => v >= 0 ? 'rgba(16,185,129,0.6)' : 'rgba(239,68,68,0.6)'), borderRadius: 3, barPercentage: 0.55, yAxisID: 'yL' },
+        { type: 'bar', data: path.pnlHist, backgroundColor: path.pnlHist.map(v => v >= 0 ? 'rgba(34,197,94,0.6)' : 'rgba(239,68,68,0.6)'), borderRadius: 2, barPercentage: 0.6, yAxisID: 'yL' },
         { type: 'line', data: path.curve.slice(1), borderColor: '#8b5cf6', borderWidth: 1.5, fill: false, pointRadius: 0, yAxisID: 'yR' }
       ]
     },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, yL: { position: 'left', grid: { color: grid } }, yR: { position: 'right', grid: { display: false } } } }
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, yL: { position: 'left', grid: { color: gridColor } }, yR: { position: 'right', grid: { display: false } } } }
   });
 
-  const rBrackets = ['<-3R', '-3→-2R', '-2→-1R', '-1→0R', '0→1R', '1→2R', '2→3R', '3→4R', '>4R'];
-  const counts = new Array(9).fill(0);
+  const rBrackets = ['<-2R', '-2→-1R', '-1→0R', '0→1R', '1→2R', '2→3R', '>3R'];
+  const counts = new Array(7).fill(0);
   const base = capital * riskPct;
   path.pnlHist.forEach(v => {
     const r = v / base;
-    if (r < -3) counts[0]++;
-    else if (r >= -3 && r < -2) counts[1]++;
-    else if (r >= -2 && r < -1) counts[2]++;
-    else if (r >= -1 && r < 0) counts[3]++;
-    else if (r >= 0 && r < 1) counts[4]++;
-    else if (r >= 1 && r < 2) counts[5]++;
-    else if (r >= 2 && r < 3) counts[6]++;
-    else if (r >= 3 && r < 4) counts[7]++;
-    else counts[8]++;
+    if (r < -2) counts[0]++;
+    else if (r >= -2 && r < -1) counts[1]++;
+    else if (r >= -1 && r < 0) counts[2]++;
+    else if (r >= 0 && r < 1) counts[3]++;
+    else if (r >= 1 && r < 2) counts[4]++;
+    else if (r >= 2 && r < 3) counts[5]++;
+    else counts[6]++;
   });
 
   destroyChart('histogramChart');
   chartInstances['histogramChart'] = new Chart(document.getElementById('histogramChart'), {
     data: {
       labels: rBrackets,
-      datasets: [{ type: 'bar', data: counts, backgroundColor: counts.map((_, i) => i < 4 ? 'rgba(239,68,68,0.65)' : 'rgba(16,185,129,0.65)'), borderRadius: 4, barPercentage: 0.7 }]
+      datasets: [{ type: 'bar', data: counts, backgroundColor: counts.map((_, i) => i < 3 ? 'rgba(239,68,68,0.6)' : 'rgba(34,197,94,0.6)'), borderRadius: 4, barPercentage: 0.7 }]
     },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { grid: { color: grid } } } }
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { grid: { color: gridColor } } } }
   });
 }
 
 
 // ============================================================
-// FIRM DIRECTORY (PropFirmMatch-style)
+// FIRM DIRECTORY
 // ============================================================
 function renderFirmDirectory(filter) {
-  ['all','futures','forex'].forEach(f => {
-    const el = document.getElementById('fd-' + f);
-    if (el) el.classList.toggle('active', f === filter);
-  });
-
   const grid = document.getElementById('firmDirectoryGrid');
   grid.innerHTML = '';
 
@@ -511,103 +524,88 @@ function renderFirmDirectory(filter) {
     const f = FIRMS[k];
     if (filter !== 'all' && f.cat !== filter) return;
 
-    const maxSizeStr = f.maxFunded >= 1000000 ? '$' + (f.maxFunded / 1000000).toFixed(1) + 'M' : '$' + (f.maxFunded / 1000) + 'K';
     const planCount = Object.values(f.sizes).reduce((n, s) => n + Object.keys(s).length, 0);
-    const sizeOptions = Object.keys(f.sizes).map(s => '$' + parseInt(s).toLocaleString()).join(', ');
+    const maxSizeStr = f.maxFunded >= 1000000 ? '$' + (f.maxFunded / 1000000).toFixed(1) + 'M' : '$' + (f.maxFunded / 1000) + 'K';
 
-    // Build plan details table
     let planRows = '';
     Object.keys(f.sizes).forEach(sz => {
       Object.keys(f.sizes[sz]).forEach(t => {
         const p = f.sizes[sz][t];
         const ddLabel = p.type === 'trailing' ? 'Trail' : p.type === 'eod' ? 'EOD' : 'Static';
-        planRows += `<div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr 1fr; gap:4px; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.04); font-size:10px;" class="mono">
-          <span style="color:var(--text);">$${parseInt(sz).toLocaleString()}</span>
-          <span style="color:var(--green);">$${p.target.toLocaleString()}</span>
-          <span style="color:var(--red);">$${p.maxDD.toLocaleString()}</span>
-          <span style="color:var(--muted);">${ddLabel}</span>
-          <span style="color:var(--muted);">${p.minDays}d</span>
+        planRows += `<div class="plan-row">
+          <span style="color:var(--text-primary);">$${parseInt(sz).toLocaleString()}</span>
+          <span style="color:var(--accent-green);">$${p.target.toLocaleString()}</span>
+          <span style="color:var(--accent-red);">$${p.maxDD.toLocaleString()}</span>
+          <span style="color:var(--text-secondary);">${ddLabel}</span>
+          <span style="color:var(--text-secondary);">${p.minDays}d</span>
         </div>`;
       });
     });
 
     const card = document.createElement('div');
     card.className = 'firm-card';
+    card.style.setProperty('--firm-color', f.color);
     card.innerHTML = `
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
-        <div style="display:flex; align-items:center; gap:12px;">
-          <div style="width:44px;height:44px;border-radius:12px;background:${f.color}20;display:flex;align-items:center;justify-content:center;">
-            <span style="font-size:16px;font-weight:800;color:${f.color};">${f.name.charAt(0)}</span>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div style="width:48px;height:48px;border-radius:14px;background:${f.color}18;display:flex;align-items:center;justify-content:center;">
+            <span style="font-size:18px;font-weight:800;color:${f.color};">${f.name.charAt(0)}</span>
           </div>
           <div>
-            <div style="font-size:15px; font-weight:700;">${f.name}</div>
-            <div style="display:flex; gap:6px; margin-top:4px;">
-              <span class="badge badge-b">${f.cat.toUpperCase()}</span>
-              <span class="badge badge-p">${planCount} plans</span>
+            <div style="font-size:16px;font-weight:700;">${f.name}</div>
+            <div style="display:flex;gap:6px;margin-top:4px;">
+              <span class="badge badge-blue">${f.cat.toUpperCase()}</span>
+              <span class="badge badge-purple">${planCount} plans</span>
             </div>
           </div>
         </div>
         <div style="text-align:right;">
-          <div style="font-size:28px;font-weight:700;color:${f.color};font-family:'JetBrains Mono',monospace;">${f.payout}%</div>
-          <div style="font-size:9px;color:var(--muted);">payout split</div>
+          <div class="mono" style="font-size:28px;font-weight:800;color:${f.color};">${f.payout}%</div>
+          <div style="font-size:10px;color:var(--text-muted);">payout</div>
         </div>
       </div>
-
-      <p style="font-size:12px; color:var(--muted); margin-bottom:14px; line-height:1.5;">${f.description}</p>
-
-      <div style="background:${f.color}12;border:1px solid ${f.color}30;border-radius:8px;padding:10px 14px;margin-bottom:14px;">
-        <p style="font-size:11px;color:${f.color};font-weight:600;">⭐ ${f.feature}</p>
+      <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-bottom:16px;">${f.description}</p>
+      <div style="background:${f.color}10;border:1px solid ${f.color}30;border-radius:10px;padding:10px 14px;margin-bottom:16px;">
+        <span style="font-size:12px;color:${f.color};font-weight:600;"><i class="fas fa-star" style="margin-right:4px;"></i>${f.feature}</span>
       </div>
-
-      <div class="grid grid-cols-3 gap-2" style="margin-bottom:14px;">
-        <div style="background:var(--card-hi);border-radius:8px;padding:10px;">
-          <div style="font-size:9px;color:var(--muted);margin-bottom:3px;">MAX FUNDED</div>
-          <div class="mono" style="font-size:13px;font-weight:700;">${maxSizeStr}</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;">
+        <div style="background:var(--bg-input);border-radius:8px;padding:10px 12px;">
+          <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;margin-bottom:3px;">Max Funded</div>
+          <div class="mono" style="font-size:14px;font-weight:700;">${maxSizeStr}</div>
         </div>
-        <div style="background:var(--card-hi);border-radius:8px;padding:10px;">
-          <div style="font-size:9px;color:var(--muted);margin-bottom:3px;">MAX PAYOUT</div>
-          <div class="mono" style="font-size:13px;font-weight:700;">${f.maxPayout}%</div>
+        <div style="background:var(--bg-input);border-radius:8px;padding:10px 12px;">
+          <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;margin-bottom:3px;">Max Payout</div>
+          <div class="mono" style="font-size:14px;font-weight:700;">${f.maxPayout}%</div>
         </div>
-        <div style="background:var(--card-hi);border-radius:8px;padding:10px;">
-          <div style="font-size:9px;color:var(--muted);margin-bottom:3px;">SIZES</div>
-          <div class="mono" style="font-size:11px;font-weight:600;">${Object.keys(f.sizes).length}</div>
+        <div style="background:var(--bg-input);border-radius:8px;padding:10px 12px;">
+          <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;margin-bottom:3px;">Accounts</div>
+          <div class="mono" style="font-size:14px;font-weight:700;">${Object.keys(f.sizes).length}</div>
         </div>
       </div>
-
-      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px;">
-        <span class="badge ${f.scaling ? 'badge-g' : 'badge-r'}">${f.scaling ? '✓ Scaling' : '✗ No Scaling'}</span>
-        <span class="badge ${f.refund ? 'badge-g' : 'badge-r'}">${f.refund ? '✓ Refund' : '✗ No Refund'}</span>
-        <span class="badge ${f.newsTrading ? 'badge-g' : 'badge-r'}">${f.newsTrading ? '✓ News' : '✗ No News'}</span>
-        <span class="badge ${f.weekendHold ? 'badge-g' : 'badge-r'}">${f.weekendHold ? '✓ Weekend' : '✗ No Weekend'}</span>
-        <span class="badge ${f.ea ? 'badge-g' : 'badge-r'}">${f.ea ? '✓ EA/Bots' : '✗ No EA'}</span>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;">
+        <span class="badge ${f.scaling?'badge-green':'badge-red'}">${f.scaling?'✓ Scaling':'✗ No Scaling'}</span>
+        <span class="badge ${f.refund?'badge-green':'badge-red'}">${f.refund?'✓ Refund':'✗ No Refund'}</span>
+        <span class="badge ${f.newsTrading?'badge-green':'badge-red'}">${f.newsTrading?'✓ News':'✗ No News'}</span>
+        <span class="badge ${f.weekendHold?'badge-green':'badge-red'}">${f.weekendHold?'✓ Weekend':'✗ No Weekend'}</span>
+        <span class="badge ${f.ea?'badge-green':'badge-red'}">${f.ea?'✓ EA/Bots':'✗ No EA'}</span>
       </div>
-
-      <!-- Plan Table -->
-      <div style="background:var(--card-hi);border-radius:8px;padding:12px;border:1px solid var(--border);">
-        <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr 1fr; gap:4px; padding-bottom:6px; border-bottom:1px solid var(--border-hi); margin-bottom:4px;">
-          <span style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;">Size</span>
-          <span style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;">Target</span>
-          <span style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;">Max DD</span>
-          <span style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;">DD Type</span>
-          <span style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;">Min Days</span>
+      <div style="background:var(--bg-input);border-radius:10px;padding:14px;border:1px solid var(--border-primary);margin-bottom:16px;">
+        <div class="plan-row plan-header" style="border-bottom:1px solid var(--border-secondary);padding-bottom:6px;margin-bottom:4px;">
+          <span>Size</span><span>Target</span><span>Max DD</span><span>DD Type</span><span>Min Days</span>
         </div>
         ${planRows}
       </div>
-
-      <!-- Promo Code -->
-      <div style="margin-top:14px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,rgba(139,92,246,0.1),rgba(59,130,246,0.1));border:1px solid rgba(139,92,246,0.2);border-radius:8px;padding:10px 14px;">
+      <div class="promo-box">
         <div>
-          <span style="font-size:10px;color:var(--muted);">Discount Code:</span>
-          <span class="mono" style="font-size:14px;font-weight:700;color:var(--purple);margin-left:6px;">EDGE</span>
+          <span style="font-size:11px;color:var(--text-muted);">Discount Code:</span>
+          <span class="promo-code" style="margin-left:8px;">EDGE</span>
         </div>
-        <span class="badge badge-g">${f.promoDiscount}</span>
+        <span class="promo-discount">${f.promoDiscount}</span>
       </div>
     `;
     grid.appendChild(card);
   });
 }
-
-function filterFirms(f) { renderFirmDirectory(f); }
 
 
 // ============================================================
@@ -622,39 +620,30 @@ function runMatcher() {
   const consPref = document.getElementById('m-cons-in').value;
   const daysPref = document.getElementById('m-days-in').value;
   const mktPref = document.getElementById('m-market-in').value;
-
   const results = [];
 
   Object.keys(FIRMS).forEach(k => {
     const f = FIRMS[k];
     if (mktPref !== 'all' && f.cat !== mktPref) return;
-
     let bestScore = 0, bestSize = null, bestType = null;
-
     Object.keys(f.sizes).forEach(sz => {
       Object.keys(f.sizes[sz]).forEach(t => {
         const plan = f.sizes[sz][t];
         const cap = parseFloat(sz);
         const reqReturnPct = plan.target / cap;
-
         const expectancy = (wr * rr) - (1 - wr);
         const achievability = Math.min(30, Math.max(0, (expectancy / reqReturnPct) * 15));
-
         let ddScore = 10;
         if (ddPref === 'any') ddScore = 20;
         else if (ddPref === plan.type) ddScore = 25;
         else if ((ddPref === 'static' && plan.type === 'eod') || (ddPref === 'eod' && plan.type === 'static')) ddScore = 15;
-
         const c = parseInt(plan.consistency);
         let consScore = 15;
         if (consPref === 'any') consScore = 15;
         else if (consPref === 'none' && c === 0) consScore = 20;
         else if (consPref === 'none' && c > 0) consScore = 5;
         else if (consPref === 'relaxed' && c >= 40) consScore = 20;
-        else if (consPref === 'relaxed' && c === 30) consScore = 15;
-        else if (consPref === 'relaxed' && c <= 20) consScore = 8;
-        else if (consPref === 'strict') consScore = 20 - Math.max(0, (c - 20) / 3);
-
+        else if (consPref === 'strict') consScore = 18;
         const minD = plan.minDays;
         let daysScore = 10;
         if (daysPref === 'any') daysScore = 12;
@@ -662,16 +651,12 @@ function runMatcher() {
         else if (daysPref === 'moderate' && minD >= 4 && minD <= 7) daysScore = 15;
         else if (daysPref === 'extended' && minD >= 8) daysScore = 15;
         else daysScore = 5;
-
         const leniency = 10 - (c > 0 ? 3 : 0) - (plan.type === 'trailing' ? 2 : 0) - (minD > 7 ? 2 : 0);
         const total = achievability + ddScore + consScore + daysScore + leniency;
         if (total > bestScore) { bestScore = total; bestSize = sz; bestType = t; }
       });
     });
-
-    if (bestSize) {
-      results.push({ key: k, firm: f, score: Math.min(100, Math.round(bestScore)), size: bestSize, type: bestType, plan: f.sizes[bestSize][bestType] });
-    }
+    if (bestSize) results.push({ key: k, firm: f, score: Math.min(100, Math.round(bestScore)), size: bestSize, type: bestType, plan: f.sizes[bestSize][bestType] });
   });
 
   results.sort((a, b) => b.score - a.score);
@@ -680,39 +665,32 @@ function runMatcher() {
   container.innerHTML = '';
 
   results.forEach((r, idx) => {
-    const barColor = r.score >= 75 ? 'var(--green)' : r.score >= 50 ? 'var(--amber)' : 'var(--red)';
-    const badge = r.score >= 75 ? 'badge-g' : r.score >= 50 ? 'badge-a' : 'badge-r';
-    const ddLabel = r.plan.type === 'trailing' ? 'Intraday Trail' : r.plan.type === 'eod' ? 'EOD Trail' : 'Static Floor';
-    const consLabel = parseInt(r.plan.consistency) > 0 ? r.plan.consistency + '% cap' : 'None';
+    const barColor = r.score >= 75 ? 'var(--accent-green)' : r.score >= 50 ? 'var(--accent-amber)' : 'var(--accent-red)';
+    const badgeCls = r.score >= 75 ? 'badge-green' : r.score >= 50 ? 'badge-amber' : 'badge-red';
+    const ddLabel = r.plan.type === 'trailing' ? 'Trailing' : r.plan.type === 'eod' ? 'EOD' : 'Static';
 
     const row = document.createElement('div');
     row.className = 'match-row';
     row.innerHTML = `
-      <div style="width:34px;height:34px;border-radius:9px;background:${r.firm.color}20;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:${r.firm.color};flex-shrink:0;">${idx + 1}</div>
+      <div style="width:36px;height:36px;border-radius:10px;background:${r.firm.color}18;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:${r.firm.color};flex-shrink:0;">${idx + 1}</div>
       <div style="flex:1;min-width:0;">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
-          <span style="font-size:13px;font-weight:700;">${r.firm.name}</span>
-          <span class="badge ${badge}">${r.score}% match</span>
-          <span class="badge badge-b">${r.firm.cat.toUpperCase()}</span>
-          <span class="badge badge-p">Code: EDGE</span>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
+          <span style="font-size:14px;font-weight:700;">${r.firm.name}</span>
+          <span class="badge ${badgeCls}">${r.score}% match</span>
+          <span class="badge badge-blue">${r.firm.cat.toUpperCase()}</span>
+          <span class="badge badge-purple">EDGE</span>
         </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
-          <span style="font-size:10px;color:var(--muted);">$${parseInt(r.size).toLocaleString()} — ${r.type}</span>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--text-muted);margin-bottom:8px;">
+          <span>$${parseInt(r.size).toLocaleString()} — ${r.type}</span>
+          <span>Target: <b style="color:var(--text-primary);">$${r.plan.target.toLocaleString()}</b></span>
+          <span>DD: <b style="color:var(--text-primary);">${ddLabel} $${r.plan.maxDD.toLocaleString()}</b></span>
+          <span>Days: <b style="color:var(--text-primary);">${r.plan.minDays}</b></span>
         </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <span style="font-size:9px;color:var(--muted);">Target: <b style="color:var(--text);">$${r.plan.target.toLocaleString()}</b></span>
-          <span style="font-size:9px;color:var(--muted);">MaxDD: <b style="color:var(--text);">$${r.plan.maxDD.toLocaleString()}</b></span>
-          <span style="font-size:9px;color:var(--muted);">DD: <b style="color:var(--text);">${ddLabel}</b></span>
-          <span style="font-size:9px;color:var(--muted);">Consistency: <b style="color:var(--text);">${consLabel}</b></span>
-          <span style="font-size:9px;color:var(--muted);">Min Days: <b style="color:var(--text);">${r.plan.minDays}</b></span>
-        </div>
-        <div class="match-bar-bg" style="margin-top:8px;">
-          <div style="width:${r.score}%;height:100%;background:${barColor};border-radius:4px;transition:width 0.8s;"></div>
-        </div>
+        <div class="progress-bar-bg"><div class="progress-bar" style="width:${r.score}%;background:${barColor};"></div></div>
       </div>
-      <div style="text-align:right;">
-        <div style="font-size:22px;font-weight:700;color:${r.firm.color};font-family:'JetBrains Mono',monospace;">${r.firm.payout}%</div>
-        <button onclick="loadFirmIntoSim('${r.key}','${r.size}','${r.type}')" style="margin-top:6px;background:${r.firm.color}20;color:${r.firm.color};border:1px solid ${r.firm.color}40;border-radius:6px;padding:5px 12px;font-size:10px;font-weight:700;cursor:pointer;">Simulate →</button>
+      <div style="text-align:right;flex-shrink:0;">
+        <div class="mono" style="font-size:22px;font-weight:800;color:${r.firm.color};">${r.firm.payout}%</div>
+        <button onclick="loadFirmIntoSim('${r.key}','${r.size}','${r.type}')" style="margin-top:6px;background:${r.firm.color}18;color:${r.firm.color};border:1px solid ${r.firm.color}40;border-radius:8px;padding:6px 14px;font-size:11px;font-weight:600;cursor:pointer;">Simulate →</button>
       </div>
     `;
     container.appendChild(row);
@@ -720,7 +698,10 @@ function runMatcher() {
 }
 
 function loadFirmIntoSim(firmKey, size, type) {
-  switchTab('sim', document.querySelectorAll('header .tab-btn')[0]);
+  document.querySelectorAll('#mainNav .nav-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelector('[data-tab="sim"]').classList.add('active');
+  document.getElementById('tab-sim').classList.add('active');
   document.getElementById('propFirm').value = firmKey;
   updateSizes();
   document.getElementById('propSize').value = size;
@@ -738,23 +719,16 @@ function calcPosition() {
   const risk = parseFloat(document.getElementById('calc-risk').value) / 100;
   const sl = parseFloat(document.getElementById('calc-sl').value);
   const tv = parseFloat(document.getElementById('calc-tv').value);
-
   const dollarRisk = bal * risk;
   const contracts = Math.floor(dollarRisk / (sl * tv));
   const actualRisk = contracts * sl * tv;
-
   document.getElementById('calcResult').style.display = 'block';
   document.getElementById('calcResult').innerHTML = `
-    <div class="space-y-3">
-      <div style="display:flex;justify-content:space-between;"><span style="font-size:11px;color:var(--muted);">Dollar Risk:</span><span class="mono" style="font-size:13px;font-weight:600;color:var(--amber);">$${dollarRisk.toFixed(2)}</span></div>
-      <div style="display:flex;justify-content:space-between;"><span style="font-size:11px;color:var(--muted);">Max Contracts/Lots:</span><span class="mono" style="font-size:18px;font-weight:700;color:var(--green);">${contracts}</span></div>
-      <div style="display:flex;justify-content:space-between;"><span style="font-size:11px;color:var(--muted);">Actual Risk:</span><span class="mono" style="font-size:13px;font-weight:600;">$${actualRisk.toFixed(2)}</span></div>
-      <div style="display:flex;justify-content:space-between;"><span style="font-size:11px;color:var(--muted);">Risk % of Account:</span><span class="mono" style="font-size:13px;font-weight:600;">${(actualRisk/bal*100).toFixed(3)}%</span></div>
-      <div style="border-top:1px solid var(--border);padding-top:8px;margin-top:4px;">
-        <p style="font-size:10px;color:var(--muted);">With ${sl} tick stop and $${tv}/tick value, ${contracts} contract(s) keep you within risk tolerance.</p>
-      </div>
-    </div>
-  `;
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--text-muted);">Dollar Risk:</span><span class="mono" style="font-weight:600;color:var(--accent-amber);">$${dollarRisk.toFixed(2)}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--text-muted);">Contracts/Lots:</span><span class="mono" style="font-weight:800;font-size:18px;color:var(--accent-green);">${contracts}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--text-muted);">Actual Risk:</span><span class="mono" style="font-weight:600;">$${actualRisk.toFixed(2)} (${(actualRisk/bal*100).toFixed(3)}%)</span></div>
+    </div>`;
 }
 
 function calcRoadmap() {
@@ -763,23 +737,17 @@ function calcRoadmap() {
   const avgW = parseFloat(document.getElementById('road-avgw').value);
   const avgL = parseFloat(document.getElementById('road-avgl').value);
   const tpd = parseFloat(document.getElementById('road-tpd').value);
-
   const expectPerTrade = (wr * avgW) - ((1 - wr) * avgL);
-  const tradesToTarget = Math.ceil(target / expectPerTrade);
-  const daysToTarget = Math.ceil(tradesToTarget / tpd);
-
+  const tradesToTarget = expectPerTrade > 0 ? Math.ceil(target / expectPerTrade) : Infinity;
+  const daysToTarget = expectPerTrade > 0 ? Math.ceil(tradesToTarget / tpd) : Infinity;
   document.getElementById('roadResult').style.display = 'block';
   document.getElementById('roadResult').innerHTML = `
-    <div class="space-y-3">
-      <div style="display:flex;justify-content:space-between;"><span style="font-size:11px;color:var(--muted);">Expectancy/Trade:</span><span class="mono" style="font-size:13px;font-weight:600;color:${expectPerTrade > 0 ? 'var(--green)' : 'var(--red)'};">$${expectPerTrade.toFixed(2)}</span></div>
-      <div style="display:flex;justify-content:space-between;"><span style="font-size:11px;color:var(--muted);">Trades to Target:</span><span class="mono" style="font-size:18px;font-weight:700;color:var(--blue);">${expectPerTrade > 0 ? tradesToTarget : '∞'}</span></div>
-      <div style="display:flex;justify-content:space-between;"><span style="font-size:11px;color:var(--muted);">Est. Trading Days:</span><span class="mono" style="font-size:18px;font-weight:700;color:var(--purple);">${expectPerTrade > 0 ? daysToTarget : '∞'}</span></div>
-      <div style="display:flex;justify-content:space-between;"><span style="font-size:11px;color:var(--muted);">Daily Expectancy:</span><span class="mono" style="font-size:13px;font-weight:600;">$${(expectPerTrade * tpd).toFixed(2)}</span></div>
-      <div style="border-top:1px solid var(--border);padding-top:8px;margin-top:4px;">
-        <p style="font-size:10px;color:var(--muted);">${expectPerTrade > 0 ? `At ${tpd} trades/day with $${expectPerTrade.toFixed(0)} edge, target achievable in ~${daysToTarget} days.` : 'Negative expectancy — strategy cannot reach target.'}</p>
-      </div>
-    </div>
-  `;
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--text-muted);">Expectancy/Trade:</span><span class="mono" style="font-weight:600;color:${expectPerTrade>0?'var(--accent-green)':'var(--accent-red)'};">$${expectPerTrade.toFixed(2)}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--text-muted);">Trades Needed:</span><span class="mono" style="font-weight:800;font-size:18px;color:var(--accent-blue);">${expectPerTrade>0?tradesToTarget:'∞'}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--text-muted);">Est. Days:</span><span class="mono" style="font-weight:800;font-size:18px;color:var(--accent-purple);">${expectPerTrade>0?daysToTarget:'∞'}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--text-muted);">Daily Edge:</span><span class="mono" style="font-weight:600;">$${(expectPerTrade*tpd).toFixed(2)}</span></div>
+    </div>`;
 }
 
 function calcPayout() {
@@ -788,46 +756,34 @@ function calcPayout() {
   const profitPct = parseFloat(document.getElementById('pay-profit').value) / 100;
   const split = parseFloat(document.getElementById('pay-split').value) / 100;
   const months = parseInt(document.getElementById('pay-months').value);
-
   const monthlyProfit = funded * profitPct;
   const monthlyPayout = monthlyProfit * split;
   const totalPayout = monthlyPayout * months;
   const roi = ((totalPayout - fee) / fee * 100);
   const breakeven = fee / monthlyPayout;
-
   document.getElementById('payResult').style.display = 'block';
   document.getElementById('payResult').innerHTML = `
-    <div class="space-y-3">
-      <div style="display:flex;justify-content:space-between;"><span style="font-size:11px;color:var(--muted);">Monthly Profit:</span><span class="mono" style="font-size:13px;font-weight:600;color:var(--green);">$${monthlyProfit.toLocaleString()}</span></div>
-      <div style="display:flex;justify-content:space-between;"><span style="font-size:11px;color:var(--muted);">Your Payout/Mo:</span><span class="mono" style="font-size:18px;font-weight:700;color:var(--green);">$${monthlyPayout.toLocaleString()}</span></div>
-      <div style="display:flex;justify-content:space-between;"><span style="font-size:11px;color:var(--muted);">${months}-Month Total:</span><span class="mono" style="font-size:18px;font-weight:700;color:var(--blue);">$${totalPayout.toLocaleString()}</span></div>
-      <div style="display:flex;justify-content:space-between;"><span style="font-size:11px;color:var(--muted);">ROI on Fee:</span><span class="mono" style="font-size:15px;font-weight:700;color:var(--purple);">${roi.toFixed(0)}%</span></div>
-      <div style="display:flex;justify-content:space-between;"><span style="font-size:11px;color:var(--muted);">Breakeven:</span><span class="mono" style="font-size:13px;font-weight:600;">${breakeven.toFixed(1)} months</span></div>
-      <div style="border-top:1px solid var(--border);padding-top:8px;margin-top:4px;">
-        <p style="font-size:10px;color:var(--muted);">Use code <b style="color:var(--purple);">EDGE</b> to reduce the eval fee and improve ROI further.</p>
-      </div>
-    </div>
-  `;
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--text-muted);">Monthly Payout:</span><span class="mono" style="font-weight:800;font-size:18px;color:var(--accent-green);">$${monthlyPayout.toLocaleString()}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--text-muted);">${months}-Mo Total:</span><span class="mono" style="font-weight:700;color:var(--accent-blue);">$${totalPayout.toLocaleString()}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--text-muted);">ROI:</span><span class="mono" style="font-weight:700;color:var(--accent-purple);">${roi.toFixed(0)}%</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--text-muted);">Breakeven:</span><span class="mono" style="font-weight:600;">${breakeven.toFixed(1)} months</span></div>
+      <p style="font-size:11px;color:var(--text-muted);margin-top:6px;border-top:1px solid var(--border-primary);padding-top:8px;">Use code <b style="color:var(--accent-purple);">EDGE</b> to lower the eval fee and boost ROI.</p>
+    </div>`;
 }
 
 
 // ============================================================
 // EVAL TRACKER
 // ============================================================
-let evals = JSON.parse(localStorage.getItem('propfirmedge_evals') || '[]');
-
-function saveEvals() {
-  localStorage.setItem('propfirmedge_evals', JSON.stringify(evals));
-}
+let evals = JSON.parse(localStorage.getItem('pfe_evals') || '[]');
+function saveEvals() { localStorage.setItem('pfe_evals', JSON.stringify(evals)); }
 
 function addEval() {
   const firmKey = document.getElementById('track-firm').value;
   const firm = FIRMS[firmKey];
   evals.push({
-    id: Date.now(),
-    firm: firm.name,
-    firmKey: firmKey,
-    color: firm.color,
+    id: Date.now(), firm: firm.name, firmKey, color: firm.color,
     size: parseFloat(document.getElementById('track-size').value),
     target: parseFloat(document.getElementById('track-target').value),
     maxDD: parseFloat(document.getElementById('track-dd').value),
@@ -836,43 +792,16 @@ function addEval() {
     status: document.getElementById('track-status').value,
     date: new Date().toISOString().split('T')[0]
   });
-  saveEvals();
-  renderTracker();
+  saveEvals(); renderTracker();
 }
 
-function updateEvalPnl(id, val) {
-  const ev = evals.find(e => e.id === id);
-  if (ev) { ev.pnl = parseFloat(val) || 0; saveEvals(); renderTracker(); }
-}
-
-function updateEvalDays(id, val) {
-  const ev = evals.find(e => e.id === id);
-  if (ev) { ev.days = parseInt(val) || 0; saveEvals(); renderTracker(); }
-}
-
-function updateEvalStatus(id, val) {
-  const ev = evals.find(e => e.id === id);
-  if (ev) { ev.status = val; saveEvals(); renderTracker(); }
-}
-
-function removeEval(id) {
-  evals = evals.filter(e => e.id !== id);
-  saveEvals();
-  renderTracker();
-}
-
-function clearEvals() {
-  if (confirm('Clear all tracked evaluations?')) {
-    evals = [];
-    saveEvals();
-    renderTracker();
-  }
-}
+function updateEvalPnl(id, val) { const ev = evals.find(e => e.id === id); if (ev) { ev.pnl = parseFloat(val)||0; saveEvals(); renderTracker(); } }
+function updateEvalDays(id, val) { const ev = evals.find(e => e.id === id); if (ev) { ev.days = parseInt(val)||0; saveEvals(); renderTracker(); } }
+function updateEvalStatus(id, val) { const ev = evals.find(e => e.id === id); if (ev) { ev.status = val; saveEvals(); renderTracker(); } }
+function removeEval(id) { evals = evals.filter(e => e.id !== id); saveEvals(); renderTracker(); }
+function clearEvals() { if (confirm('Clear all evaluations?')) { evals = []; saveEvals(); renderTracker(); } }
 
 function renderTracker() {
-  const list = document.getElementById('trackerList');
-
-  // Stats
   const total = evals.length;
   const passed = evals.filter(e => e.status === 'passed').length;
   const failed = evals.filter(e => e.status === 'failed').length;
@@ -883,80 +812,55 @@ function renderTracker() {
   document.getElementById('ts-active').textContent = active;
   document.getElementById('ts-rate').textContent = (passed + failed) > 0 ? ((passed / (passed + failed)) * 100).toFixed(0) + '%' : '—';
 
-  if (evals.length === 0) {
-    list.innerHTML = '<div class="card p-6 text-center" style="color:var(--muted);"><p>No evaluations tracked yet.</p></div>';
+  const list = document.getElementById('trackerList');
+  if (!evals.length) {
+    list.innerHTML = '<div class="card card-p" style="text-align:center;color:var(--text-muted);padding:48px;"><i class="fas fa-chart-line" style="font-size:32px;margin-bottom:12px;opacity:0.3;"></i><p>No evaluations tracked yet.</p></div>';
     return;
   }
-
   list.innerHTML = '';
   evals.forEach(ev => {
     const progress = ev.target > 0 ? Math.min(100, Math.max(0, (ev.pnl / ev.target) * 100)) : 0;
     const ddUsed = ev.pnl < 0 ? Math.min(100, (Math.abs(ev.pnl) / ev.maxDD) * 100) : 0;
-    const statusColor = ev.status === 'passed' ? 'var(--green)' : ev.status === 'failed' ? 'var(--red)' : 'var(--blue)';
-    const statusBadge = ev.status === 'passed' ? 'badge-g' : ev.status === 'failed' ? 'badge-r' : 'badge-b';
+    const statusBadge = ev.status === 'passed' ? 'badge-green' : ev.status === 'failed' ? 'badge-red' : 'badge-blue';
 
     const row = document.createElement('div');
-    row.className = 'tracker-row';
+    row.className = 'tracker-item';
     row.innerHTML = `
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
         <div style="display:flex;align-items:center;gap:10px;">
-          <div style="width:32px;height:32px;border-radius:8px;background:${ev.color}20;display:flex;align-items:center;justify-content:center;">
-            <span style="font-size:12px;font-weight:800;color:${ev.color};">${ev.firm.charAt(0)}</span>
-          </div>
+          <div style="width:32px;height:32px;border-radius:8px;background:${ev.color}18;display:flex;align-items:center;justify-content:center;"><span style="font-size:13px;font-weight:800;color:${ev.color};">${ev.firm.charAt(0)}</span></div>
           <div>
-            <span style="font-size:13px;font-weight:700;">${ev.firm}</span>
-            <span class="mono" style="font-size:10px;color:var(--muted);margin-left:8px;">$${ev.size.toLocaleString()}</span>
+            <span style="font-size:14px;font-weight:700;">${ev.firm}</span>
+            <span class="mono" style="font-size:11px;color:var(--text-muted);margin-left:8px;">$${ev.size.toLocaleString()}</span>
           </div>
           <span class="badge ${statusBadge}">${ev.status.toUpperCase()}</span>
         </div>
-        <div style="display:flex;gap:6px;align-items:center;">
-          <select onchange="updateEvalStatus(${ev.id}, this.value)" style="background:var(--card);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:10px;padding:3px 6px;">
+        <div style="display:flex;gap:6px;">
+          <select onchange="updateEvalStatus(${ev.id}, this.value)" class="input" style="width:auto;padding:4px 8px;font-size:10px;">
             <option value="active" ${ev.status==='active'?'selected':''}>Active</option>
             <option value="passed" ${ev.status==='passed'?'selected':''}>Passed</option>
             <option value="failed" ${ev.status==='failed'?'selected':''}>Failed</option>
           </select>
-          <button onclick="removeEval(${ev.id})" style="background:var(--red-dim);color:var(--red);border:none;border-radius:5px;padding:4px 8px;font-size:9px;font-weight:700;cursor:pointer;">✕</button>
+          <button onclick="removeEval(${ev.id})" style="background:var(--red-bg);color:var(--accent-red);border:none;border-radius:6px;padding:4px 10px;font-size:10px;font-weight:700;cursor:pointer;"><i class="fas fa-trash"></i></button>
         </div>
       </div>
-      <div class="grid grid-cols-4 gap-3" style="margin-bottom:10px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:12px;">
+        <div><span style="font-size:10px;color:var(--text-muted);display:block;margin-bottom:3px;">PnL</span><input type="number" value="${ev.pnl}" onchange="updateEvalPnl(${ev.id},this.value)" class="input" style="padding:6px 8px;font-size:11px;"></div>
+        <div><span style="font-size:10px;color:var(--text-muted);display:block;margin-bottom:3px;">Days</span><input type="number" value="${ev.days}" onchange="updateEvalDays(${ev.id},this.value)" class="input" style="padding:6px 8px;font-size:11px;"></div>
+        <div><span style="font-size:10px;color:var(--text-muted);display:block;margin-bottom:3px;">Target</span><span class="mono" style="font-size:14px;font-weight:700;color:var(--accent-green);">$${ev.target.toLocaleString()}</span></div>
+        <div><span style="font-size:10px;color:var(--text-muted);display:block;margin-bottom:3px;">Max DD</span><span class="mono" style="font-size:14px;font-weight:700;color:var(--accent-red);">$${ev.maxDD.toLocaleString()}</span></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
         <div>
-          <span style="font-size:9px;color:var(--muted);display:block;">Current PnL</span>
-          <input type="number" value="${ev.pnl}" onchange="updateEvalPnl(${ev.id}, this.value)" class="inp" style="padding:6px 8px;font-size:11px;margin-top:3px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:10px;color:var(--text-muted);">Target</span><span class="mono" style="font-size:10px;color:var(--accent-green);">${progress.toFixed(1)}%</span></div>
+          <div class="progress-bar-bg"><div class="progress-bar" style="width:${progress}%;background:var(--accent-green);"></div></div>
         </div>
         <div>
-          <span style="font-size:9px;color:var(--muted);display:block;">Days Traded</span>
-          <input type="number" value="${ev.days}" onchange="updateEvalDays(${ev.id}, this.value)" class="inp" style="padding:6px 8px;font-size:11px;margin-top:3px;">
-        </div>
-        <div>
-          <span style="font-size:9px;color:var(--muted);display:block;">Target</span>
-          <span class="mono" style="font-size:13px;font-weight:600;color:var(--green);">$${ev.target.toLocaleString()}</span>
-        </div>
-        <div>
-          <span style="font-size:9px;color:var(--muted);display:block;">Max DD</span>
-          <span class="mono" style="font-size:13px;font-weight:600;color:var(--red);">$${ev.maxDD.toLocaleString()}</span>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:10px;color:var(--text-muted);">DD Used</span><span class="mono" style="font-size:10px;color:var(--accent-red);">${ddUsed.toFixed(1)}%</span></div>
+          <div class="progress-bar-bg"><div class="progress-bar" style="width:${ddUsed}%;background:var(--accent-red);"></div></div>
         </div>
       </div>
-      <div style="display:flex;gap:12px;align-items:center;">
-        <div style="flex:1;">
-          <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
-            <span style="font-size:9px;color:var(--muted);">Target Progress</span>
-            <span class="mono" style="font-size:10px;color:var(--green);">${progress.toFixed(1)}%</span>
-          </div>
-          <div style="background:rgba(255,255,255,0.06);border-radius:4px;height:6px;overflow:hidden;">
-            <div style="width:${progress}%;height:100%;background:var(--green);border-radius:4px;transition:width 0.5s;"></div>
-          </div>
-        </div>
-        <div style="flex:1;">
-          <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
-            <span style="font-size:9px;color:var(--muted);">DD Used</span>
-            <span class="mono" style="font-size:10px;color:var(--red);">${ddUsed.toFixed(1)}%</span>
-          </div>
-          <div style="background:rgba(255,255,255,0.06);border-radius:4px;height:6px;overflow:hidden;">
-            <div style="width:${ddUsed}%;height:100%;background:var(--red);border-radius:4px;transition:width 0.5s;"></div>
-          </div>
-        </div>
-      </div>
-      <div style="margin-top:8px;font-size:9px;color:var(--muted);">Started: ${ev.date}</div>
+      <div style="margin-top:8px;font-size:10px;color:var(--text-muted);">Started: ${ev.date}</div>
     `;
     list.appendChild(row);
   });
@@ -966,7 +870,7 @@ function renderTracker() {
 // ============================================================
 // BOOT
 // ============================================================
-window.onload = () => {
+window.addEventListener('DOMContentLoaded', () => {
   initFirmDropdown();
   renderTracker();
-};
+});
