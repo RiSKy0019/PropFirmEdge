@@ -3,22 +3,37 @@
 // ============================================================
 
 // ============================================================
-// THEME TOGGLE
+// ALL TOP-LEVEL STATE (declared first to avoid TDZ errors)
 // ============================================================
 let currentTheme = localStorage.getItem('pfe-theme') || 'dark';
+let chartInstances = {};
+let esCharts = {};
+let currentDDFilter = 'all';
+let currentSizeFilter = '50000';
+let currentFirmFilter = 'all';
+let currentSort = 'truecost';
+let currentSortDir = 'asc';
+let currentPage = 1;
+const PAGE_SIZE = 8;
+let evals = JSON.parse(localStorage.getItem('pfe_evals') || '[]');
+let compareFilters = { mkt: 'all', dd: 'all', sort: 'truecost' };
 
+// ============================================================
+// THEME TOGGLE
+// ============================================================
 function applyTheme(theme) {
   const html = document.documentElement;
   if (theme === 'light') {
     html.setAttribute('data-theme', 'light');
-    document.getElementById('themeIcon').textContent = '🌙';
+    const icon = document.getElementById('themeIcon');
+    if (icon) icon.textContent = '🌙';
   } else {
     html.removeAttribute('data-theme');
-    document.getElementById('themeIcon').textContent = '☀️';
+    const icon = document.getElementById('themeIcon');
+    if (icon) icon.textContent = '☀️';
   }
   currentTheme = theme;
   localStorage.setItem('pfe-theme', theme);
-  // Update chart colors if charts exist
   refreshChartColors();
 }
 
@@ -29,57 +44,54 @@ function toggleTheme() {
 function getChartGridColor() {
   return currentTheme === 'dark' ? 'rgba(255,255,255,0.025)' : 'rgba(0,0,0,0.04)';
 }
-
 function getChartLabelColor() {
   return currentTheme === 'dark' ? '#989898' : '#64748b';
 }
-
 function getChartRadarLineColor() {
   return currentTheme === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.06)';
 }
 
 function refreshChartColors() {
+  if (typeof Chart === 'undefined') return;
   const gc = getChartGridColor();
   const lc = getChartLabelColor();
   Chart.defaults.color = lc;
-
-  // Simulator charts
-  const simChartIds = ['equityChart','monteCarloChart','distributionChart','histogramChart'];
-  simChartIds.forEach(id => {
-    const inst = chartInstances[id];
-    if (!inst) return;
-    if (inst.options.scales) {
-      if (inst.options.scales.x) inst.options.scales.x.grid && (inst.options.scales.x.grid.color = gc);
-      if (inst.options.scales.y) inst.options.scales.y.grid && (inst.options.scales.y.grid.color = gc);
-      if (inst.options.scales.yL) inst.options.scales.yL.grid && (inst.options.scales.yL.grid.color = gc);
+  ['chartEquity','chartMC','chartDist','chartHist'].forEach(id => {
+    const c = chartInstances[id];
+    if (!c) return;
+    const scales = c.options.scales;
+    if (scales) {
+      if (scales.x && scales.x.grid) scales.x.grid.color = gc;
+      if (scales.y && scales.y.grid) scales.y.grid.color = gc;
+      if (scales.yL && scales.yL.grid) scales.yL.grid.color = gc;
+      if (scales.yR && scales.yR.grid) scales.yR.grid.color = gc;
     }
-    inst.update();
+    c.update('none');
   });
-
-  // Edge Sim charts
-  if (esCharts.equity) {
-    [esCharts.equity, esCharts.mc, esCharts.overlay, esCharts.hist, esCharts.dd].forEach(c => {
-      if (!c) return;
-      if (c.options.scales) {
-        if (c.options.scales.y) c.options.scales.y.grid && (c.options.scales.y.grid.color = gc);
-        if (c.options.scales.x) c.options.scales.x.grid && (c.options.scales.x.grid.color = gc);
-        if (c.options.scales.yBar) c.options.scales.yBar.grid && (c.options.scales.yBar.grid.color = gc);
-      }
-      c.update();
-    });
-
-    if (esCharts.radar) {
-      const rl = getChartRadarLineColor();
-      esCharts.radar.options.scales.r.angleLines.color = rl;
-      esCharts.radar.options.scales.r.grid.color = rl;
-      esCharts.radar.options.scales.r.pointLabels.color = lc;
-      esCharts.radar.update();
+  [esCharts.equity, esCharts.mc, esCharts.overlay, esCharts.hist, esCharts.dd].forEach(c => {
+    if (!c) return;
+    const scales = c.options.scales;
+    if (scales) {
+      if (scales.x && scales.x.grid) scales.x.grid.color = gc;
+      if (scales.y && scales.y.grid) scales.y.grid.color = gc;
+      if (scales.yBar && scales.yBar.grid) scales.yBar.grid.color = gc;
     }
+    c.update('none');
+  });
+  if (esCharts.radar) {
+    const rl = getChartRadarLineColor();
+    esCharts.radar.options.scales.r.angleLines.color = rl;
+    esCharts.radar.options.scales.r.grid.color = rl;
+    esCharts.radar.options.scales.r.pointLabels.color = lc;
+    esCharts.radar.update('none');
   }
 }
 
-// Apply saved theme on load
-applyTheme(currentTheme);
+// Apply theme to <html> immediately (no DOM access needed here)
+(function() {
+  const saved = localStorage.getItem('pfe-theme') || 'dark';
+  if (saved === 'light') document.documentElement.setAttribute('data-theme', 'light');
+})();
 
 // FIRM DATABASE
 const FIRMS = [
@@ -212,17 +224,7 @@ const FIRMS = [
 ];
 
 
-// ============================================================
-// STATE
-// ============================================================
-let currentDDFilter = 'all';
-let currentSizeFilter = '50000';
-let currentFirmFilter = 'all';
-let currentSort = 'truecost';
-let currentSortDir = 'asc';
-let currentPage = 1;
-const PAGE_SIZE = 8;
-let evals = JSON.parse(localStorage.getItem('pfe_evals') || '[]');
+// STATE is declared at the top of the file
 
 // ============================================================
 // NAVIGATION
@@ -545,7 +547,6 @@ function renderAllFirms(filterMkt, filterDD) {
 // ============================================================
 // COMPARE PAGE
 // ============================================================
-let compareFilters = { mkt: 'all', dd: 'all', sort: 'truecost' };
 
 function filterCompare(type, val, btn) {
   compareFilters[type] = val;
@@ -686,7 +687,6 @@ function simulate(capital, wr, rr, riskPct, numTrades, dailyLoss, maxDD, ddType)
     avgW: wins === 0 ? 0 : sumW / wins, avgL: losses === 0 ? 0 : sumL / losses, hiWin, failReason };
 }
 
-let chartInstances = {};
 function destroyChart(id) { if (chartInstances[id]) { chartInstances[id].destroy(); delete chartInstances[id]; } }
 
 function initSimFirmDropdown() {
@@ -975,6 +975,8 @@ function initFirmFilterDropdown() {
 // BOOT
 // ============================================================
 document.addEventListener('DOMContentLoaded', () => {
+  // Apply theme icon (DOM is ready now)
+  applyTheme(currentTheme);
   initFirmFilterDropdown();
   initSimFirmDropdown();
   renderTable();
@@ -987,7 +989,6 @@ document.addEventListener('DOMContentLoaded', () => {
 // ============================================================
 // EDGE SIMULATION ENGINE
 // ============================================================
-let esCharts = {};
 
 function esUpdateSampleMeter() {
   const n = parseInt(document.getElementById('es-numtrades').value) || 0;
