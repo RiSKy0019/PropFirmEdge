@@ -356,8 +356,8 @@
 <div id="page-simulator" class="page">
   <div class="section-wrap" style="padding-top:40px;">
     <div style="margin-bottom:28px;">
-      <h2 class="section-title">Eval Pass Simulator</h2>
-      <p style="color:#989898;margin-top:6px;font-size:14px;">Run 500 Monte Carlo simulations against real firm rules. Know your pass probability before you buy.</p>
+      <h2 class="section-title">Eval Simulation</h2>
+      <p style="color:#989898;margin-top:6px;font-size:14px;">Run Monte Carlo simulations against real firm rules. Set your path count and know your pass probability before you buy.</p>
     </div>
     <div class="sim-layout">
       <!-- LEFT CONFIG -->
@@ -398,7 +398,28 @@
             </div>
             <div><label class="sim-label">Min Days</label><input type="number" id="s-mindays" value="5" oninput="simBreak()" class="sim-input"></div>
           </div>
-          <button onclick="runSim()" class="sim-run-btn">⚡ Run 500 Simulations</button>
+          <div style="border-top:1px solid var(--c-border);padding-top:12px;margin-top:4px;">
+            <label class="sim-label">Simulation Paths (Monte Carlo)</label>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <button type="button" class="sim-path-btn" data-val="50" onclick="setSimPaths(50,this)">50</button>
+                <button type="button" class="sim-path-btn" data-val="100" onclick="setSimPaths(100,this)">100</button>
+                <button type="button" class="sim-path-btn active" data-val="250" onclick="setSimPaths(250,this)">250</button>
+                <button type="button" class="sim-path-btn" data-val="500" onclick="setSimPaths(500,this)">500</button>
+                <button type="button" class="sim-path-btn" data-val="1000" onclick="setSimPaths(1000,this)">1000</button>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;margin-left:auto;">
+                <label class="sim-label" style="margin-bottom:0;white-space:nowrap;">Custom:</label>
+                <input type="number" id="s-paths-custom" placeholder="e.g. 750" min="10" max="5000"
+                  class="sim-input" style="width:90px;padding:7px 10px;"
+                  oninput="setSimPathsCustom(this.value)">
+              </div>
+            </div>
+            <p style="font-size:10px;color:var(--c-text3);margin-top:6px;">
+              Higher paths = more accurate probability, but slower. <span id="simPathsHint" style="color:#24bb78;font-weight:600;">250 paths selected.</span>
+            </p>
+          </div>
+          <button onclick="runSim()" class="sim-run-btn" id="simRunBtn">⚡ Run <span id="simPathLabel">250</span> Simulations</button>
         </div>
         <!-- Audit -->
         <div class="sim-card sim-dark-card">
@@ -406,7 +427,7 @@
           <div id="simAuditBox" class="sim-audit-box"><span style="color:#989898;font-size:12px;">Run simulation to see results.</span></div>
           <div class="sim-prob-box">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-              <span style="font-size:10px;font-weight:700;color:#989898;text-transform:uppercase;letter-spacing:0.06em;">Pass Probability (500 runs)</span>
+              <span style="font-size:10px;font-weight:700;color:#989898;text-transform:uppercase;letter-spacing:0.06em;">Pass Probability (<span id="simPathsDisplay">250</span> runs)</span>
               <span id="simPassProb" class="mono" style="font-size:20px;font-weight:700;color:#f5f5f5;">—</span>
             </div>
             <div class="prob-track"><div id="simProbBar" class="prob-fill" style="width:0%;background:#24bb78;"></div></div>

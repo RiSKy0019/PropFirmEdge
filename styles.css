@@ -545,3 +545,22 @@ input[type=number] { -moz-appearance: textfield; }
 .custom-scrollbar::-webkit-scrollbar-track { background: var(--c-bg3); }
 .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(36,187,120,0.25); border-radius: 999px; }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(36,187,120,0.45); }
+
+
+/* SIM PATH BUTTONS */
+.sim-path-btn {
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid var(--c-border);
+  background: var(--c-bg3);
+  color: var(--c-text2);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s;
+  white-space: nowrap;
+}
+.sim-path-btn:hover { border-color: #24bb78; color: #24bb78; background: rgba(36,187,120,0.06); }
+.sim-path-btn.active { background: #143425; border-color: rgba(36,187,120,0.5); color: #24bb78; box-shadow: inset 0 0 0 1px rgba(36,187,120,0.18); }

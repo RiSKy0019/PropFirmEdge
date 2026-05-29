@@ -17,6 +17,7 @@ let currentPage = 1;
 const PAGE_SIZE = 8;
 let evals = JSON.parse(localStorage.getItem('pfe_evals') || '[]');
 let compareFilters = { mkt: 'all', dd: 'all', sort: 'truecost' };
+let simPathCount = 250;
 
 // ============================================================
 // THEME TOGGLE
@@ -226,9 +227,34 @@ const FIRMS = [
 
 // STATE is declared at the top of the file
 
-// ============================================================
-// NAVIGATION
-// ============================================================
+// SIMULATION PATHS
+function setSimPaths(val, btn) {
+  simPathCount = val;
+  document.querySelectorAll('.sim-path-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const customIn = document.getElementById('s-paths-custom');
+  if (customIn) customIn.value = '';
+  updateSimPathUI();
+}
+
+function setSimPathsCustom(val) {
+  const n = parseInt(val);
+  if (!n || n < 10) return;
+  simPathCount = Math.min(n, 5000);
+  document.querySelectorAll('.sim-path-btn').forEach(b => b.classList.remove('active'));
+  updateSimPathUI();
+}
+
+function updateSimPathUI() {
+  const lbl = document.getElementById('simPathLabel');
+  const hint = document.getElementById('simPathsHint');
+  const display = document.getElementById('simPathsDisplay');
+  const n = simPathCount;
+  if (lbl) lbl.textContent = n;
+  if (display) display.textContent = n;
+  const speed = n <= 100 ? 'Very fast, low accuracy' : n <= 250 ? 'Fast, good accuracy' : n <= 500 ? 'Moderate speed, high accuracy' : 'Slow, very high accuracy';
+  if (hint) hint.textContent = `${n} paths selected — ${speed}.`;
+}
 function showPage(name, btn) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
@@ -803,13 +829,13 @@ function runSim() {
   g('sa-days', `${path.days} / ${minDays} required`, daysPassed ? '#24bb78' : '#f59e0b');
 
   let passCount = 0;
-  for (let i = 0; i < 500; i++) {
+  for (let i = 0; i < simPathCount; i++) {
     const p2 = simulate(capital, wr, rr, riskPct, numTrades, daily, maxDD, ddType);
     const n2 = p2.curve[p2.curve.length - 1] - capital;
     const c2 = consPct <= 0 || n2 <= 0 || (p2.hiWin / n2 * 100) <= consPct;
     if (!p2.failReason && n2 >= target && c2 && p2.days >= minDays) passCount++;
   }
-  const pct = (passCount / 500 * 100).toFixed(1);
+  const pct = (passCount / simPathCount * 100).toFixed(1);
   g('simPassProb', pct + '%', pct >= 60 ? '#24bb78' : pct >= 35 ? '#f59e0b' : '#ef4444');
   const bar = document.getElementById('simProbBar'); if (bar) { bar.style.width = pct + '%'; bar.style.background = pct >= 60 ? '#24bb78' : pct >= 35 ? '#f59e0b' : '#ef4444'; }
   g('simProbLabel', pct >= 60 ? 'Strong pass probability — strategy aligns well with rules.' : pct >= 35 ? 'Moderate — consider adjusting risk or win rate.' : 'Low pass rate — strategy frequently violates rules.');
