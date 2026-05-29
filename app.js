@@ -2,6 +2,85 @@
 // PropFirmEdge — App Logic
 // ============================================================
 
+// ============================================================
+// THEME TOGGLE
+// ============================================================
+let currentTheme = localStorage.getItem('pfe-theme') || 'dark';
+
+function applyTheme(theme) {
+  const html = document.documentElement;
+  if (theme === 'light') {
+    html.setAttribute('data-theme', 'light');
+    document.getElementById('themeIcon').textContent = '🌙';
+  } else {
+    html.removeAttribute('data-theme');
+    document.getElementById('themeIcon').textContent = '☀️';
+  }
+  currentTheme = theme;
+  localStorage.setItem('pfe-theme', theme);
+  // Update chart colors if charts exist
+  refreshChartColors();
+}
+
+function toggleTheme() {
+  applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+}
+
+function getChartGridColor() {
+  return currentTheme === 'dark' ? 'rgba(255,255,255,0.025)' : 'rgba(0,0,0,0.04)';
+}
+
+function getChartLabelColor() {
+  return currentTheme === 'dark' ? '#989898' : '#64748b';
+}
+
+function getChartRadarLineColor() {
+  return currentTheme === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.06)';
+}
+
+function refreshChartColors() {
+  const gc = getChartGridColor();
+  const lc = getChartLabelColor();
+  Chart.defaults.color = lc;
+
+  // Simulator charts
+  const simChartIds = ['equityChart','monteCarloChart','distributionChart','histogramChart'];
+  simChartIds.forEach(id => {
+    const inst = chartInstances[id];
+    if (!inst) return;
+    if (inst.options.scales) {
+      if (inst.options.scales.x) inst.options.scales.x.grid && (inst.options.scales.x.grid.color = gc);
+      if (inst.options.scales.y) inst.options.scales.y.grid && (inst.options.scales.y.grid.color = gc);
+      if (inst.options.scales.yL) inst.options.scales.yL.grid && (inst.options.scales.yL.grid.color = gc);
+    }
+    inst.update();
+  });
+
+  // Edge Sim charts
+  if (esCharts.equity) {
+    [esCharts.equity, esCharts.mc, esCharts.overlay, esCharts.hist, esCharts.dd].forEach(c => {
+      if (!c) return;
+      if (c.options.scales) {
+        if (c.options.scales.y) c.options.scales.y.grid && (c.options.scales.y.grid.color = gc);
+        if (c.options.scales.x) c.options.scales.x.grid && (c.options.scales.x.grid.color = gc);
+        if (c.options.scales.yBar) c.options.scales.yBar.grid && (c.options.scales.yBar.grid.color = gc);
+      }
+      c.update();
+    });
+
+    if (esCharts.radar) {
+      const rl = getChartRadarLineColor();
+      esCharts.radar.options.scales.r.angleLines.color = rl;
+      esCharts.radar.options.scales.r.grid.color = rl;
+      esCharts.radar.options.scales.r.pointLabels.color = lc;
+      esCharts.radar.update();
+    }
+  }
+}
+
+// Apply saved theme on load
+applyTheme(currentTheme);
+
 // FIRM DATABASE
 const FIRMS = [
   {
@@ -739,8 +818,11 @@ function runSim() {
 }
 
 function renderSimCharts(path, numTrades, capital, riskPct, target, maxDD, ddType, wr, rr) {
-  const gc = 'rgba(255,255,255,0.04)';
-  Chart.defaults.color = '#989898'; Chart.defaults.font.family = "'JetBrains Mono',monospace"; Chart.defaults.font.size = 10;
+  const gc = getChartGridColor();
+  const lc = getChartLabelColor();
+  Chart.defaults.color = lc;
+  Chart.defaults.font.family = "'Plus Jakarta Sans', monospace";
+  Chart.defaults.font.size = 10;
 
   destroyChart('chartEquity');
   chartInstances['chartEquity'] = new Chart(document.getElementById('chartEquity'), {
@@ -921,9 +1003,11 @@ function esUpdateSampleMeter() {
 }
 
 function initEdgeSimCharts() {
-  const gc = 'rgba(255,255,255,0.025)';
-  const lc = '#989898';
+  const gc = getChartGridColor();
+  const lc = getChartLabelColor();
+  const rl = getChartRadarLineColor();
   Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+  Chart.defaults.color = lc;
 
   // Pie
   esCharts.pie = new Chart(document.getElementById('esPieChart'), {
@@ -940,7 +1024,7 @@ function initEdgeSimCharts() {
       datasets: [{ data: [0,0,0,0,0,0], backgroundColor: 'rgba(36,187,120,0.1)', borderColor: '#24bb78', borderWidth: 2, pointBackgroundColor: '#24bb78', pointBorderColor: '#111111', pointRadius: 3 }]
     },
     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
-      scales: { r: { angleLines: { color: 'rgba(255,255,255,0.04)' }, grid: { color: 'rgba(255,255,255,0.04)' }, pointLabels: { font: { size: 9, weight: 'bold' }, color: lc }, ticks: { display: false }, suggestedMin: 0, suggestedMax: 100 } }
+      scales: { r: { angleLines: { color: rl }, grid: { color: rl }, pointLabels: { font: { size: 9, weight: 'bold' }, color: lc }, ticks: { display: false }, suggestedMin: 0, suggestedMax: 100 } }
     }
   });
 
