@@ -864,11 +864,18 @@ function runSim() {
     const iconEl = document.getElementById('simResultIcon'); if (iconEl) iconEl.innerHTML = resultIcon;
     const titleEl = document.getElementById('simResultTitle'); if (titleEl) titleEl.textContent = resultTitle;
     const subEl = document.getElementById('simResultSub'); if (subEl) subEl.textContent = resultSub;
-    const probBig = document.getElementById('simPassProbBig'); if (probBig) { probBig.textContent = pct + '%'; }
+    const probBig = document.getElementById('simPassProbBig'); if (probBig) probBig.textContent = pct + '%';
     const barBig = document.getElementById('simProbBarBig'); if (barBig) barBig.style.width = pct + '%';
   }
 
-  // ── Update small audit panel (left sidebar) ───────────────
+  // ── Apply color state to TOP audit card ───────────────────
+  const topCard = document.getElementById('simAuditTopCard');
+  if (topCard) {
+    topCard.classList.remove('state-pass','state-breach','state-warn');
+    topCard.classList.add(resultState === 'pass' ? 'state-pass' : resultState === 'breach' ? 'state-breach' : 'state-warn');
+  }
+
+  // ── Update audit status box inside top card ───────────────
   const auditBox = document.getElementById('simAuditBox');
   if (auditBox) {
     const colors = { breach: '#ef4444', warn: '#f59e0b', pass: '#24bb78' };

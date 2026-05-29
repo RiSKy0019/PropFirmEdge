@@ -675,3 +675,25 @@ input[type=number] { -moz-appearance: textfield; }
 .sim-result-breach .sim-result-prob-bar { background: #ef4444; }
 .sim-result-warn   .sim-result-prob-bar { background: #f59e0b; }
 .sim-result-idle   .sim-result-prob-bar { background: var(--c-text3); }
+
+
+/* AUDIT CARD PINNED TO TOP */
+.sim-audit-top-card {
+  border-color: var(--c-border);
+  transition: border-color 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+}
+.sim-audit-top-card.state-pass {
+  background: linear-gradient(145deg, rgba(36,187,120,0.08), rgba(36,187,120,0.03));
+  border-color: rgba(36,187,120,0.35);
+  box-shadow: 0 0 0 1px rgba(36,187,120,0.10), 0 6px 24px rgba(36,187,120,0.07);
+}
+.sim-audit-top-card.state-breach {
+  background: linear-gradient(145deg, rgba(239,68,68,0.08), rgba(239,68,68,0.03));
+  border-color: rgba(239,68,68,0.35);
+  box-shadow: 0 0 0 1px rgba(239,68,68,0.10), 0 6px 24px rgba(239,68,68,0.07);
+}
+.sim-audit-top-card.state-warn {
+  background: linear-gradient(145deg, rgba(245,158,11,0.08), rgba(245,158,11,0.03));
+  border-color: rgba(245,158,11,0.35);
+  box-shadow: 0 0 0 1px rgba(245,158,11,0.10), 0 6px 24px rgba(245,158,11,0.07);
+}
