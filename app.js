@@ -156,6 +156,7 @@ function showPage(name, btn) {
   if (btn) btn.classList.add('active');
   if (name === 'compare') renderCompare();
   if (name === 'simulator') initSimFirmDropdown();
+  if (name === 'edgesim' && !esCharts.pie) initEdgeSimCharts();
   if (name === 'tracker') renderTracker();
   window.scrollTo(0, 0);
   return false;
@@ -898,3 +899,285 @@ document.addEventListener('DOMContentLoaded', () => {
   renderFAQ();
   renderTracker();
 });
+
+
+
+// ============================================================
+// EDGE SIMULATION ENGINE
+// ============================================================
+let esCharts = {};
+
+function esUpdateSampleMeter() {
+  const n = parseInt(document.getElementById('es-numtrades').value) || 0;
+  const m = document.getElementById('es-sample-meter');
+  if (n <= 50) { m.textContent = 'Extreme Noise'; m.className = 'es-meter es-meter-red'; }
+  else if (n <= 100) { m.textContent = 'High Noise'; m.className = 'es-meter es-meter-orange'; }
+  else if (n <= 150) { m.textContent = 'Noise'; m.className = 'es-meter es-meter-amber'; }
+  else if (n <= 200) { m.textContent = 'Potential Signal'; m.className = 'es-meter es-meter-yellow'; }
+  else if (n <= 300) { m.textContent = 'Potential Edge'; m.className = 'es-meter es-meter-teal'; }
+  else if (n <= 500) { m.textContent = 'Edge'; m.className = 'es-meter es-meter-green'; }
+  else if (n <= 1000) { m.textContent = 'Solid Edge'; m.className = 'es-meter es-meter-green'; }
+  else { m.textContent = 'Institutional Sample'; m.className = 'es-meter es-meter-green-solid'; }
+}
+
+function initEdgeSimCharts() {
+  const gc = 'rgba(255,255,255,0.025)';
+  const lc = '#989898';
+  Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+
+  // Pie
+  esCharts.pie = new Chart(document.getElementById('esPieChart'), {
+    type: 'pie',
+    data: { labels: ['Wins','Losses','BE'], datasets: [{ data: [0,0,0], backgroundColor: ['#24bb78','#ef4444','#6b7280'], borderWidth: 0 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+  });
+
+  // Radar
+  esCharts.radar = new Chart(document.getElementById('esRadarChart'), {
+    type: 'radar',
+    data: {
+      labels: ['Win %','Profit Factor','Avg Win/Loss','Recovery Factor','Max Drawdown','Consistency'],
+      datasets: [{ data: [0,0,0,0,0,0], backgroundColor: 'rgba(36,187,120,0.1)', borderColor: '#24bb78', borderWidth: 2, pointBackgroundColor: '#24bb78', pointBorderColor: '#111111', pointRadius: 3 }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { r: { angleLines: { color: 'rgba(255,255,255,0.04)' }, grid: { color: 'rgba(255,255,255,0.04)' }, pointLabels: { font: { size: 9, weight: 'bold' }, color: lc }, ticks: { display: false }, suggestedMin: 0, suggestedMax: 100 } }
+    }
+  });
+
+  // Equity
+  esCharts.equity = new Chart(document.getElementById('esChartEquity'), {
+    type: 'line',
+    data: { labels: [], datasets: [{ label: 'Capital', data: [], borderColor: '#24bb78', borderWidth: 2, fill: false, pointRadius: 0 }] },
+    options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { color: gc }, display: false }, y: { grid: { color: gc } } }, plugins: { legend: { display: false } } }
+  });
+
+  // Monte Carlo
+  esCharts.mc = new Chart(document.getElementById('esChartMC'), {
+    type: 'line',
+    data: { labels: [], datasets: [] },
+    options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { color: gc }, display: false }, y: { grid: { color: gc } } }, plugins: { legend: { display: false } }, animation: { duration: 0 } }
+  });
+
+  // Overlay (bar + line)
+  esCharts.overlay = new Chart(document.getElementById('esChartOverlay'), {
+    data: { labels: [], datasets: [
+      { type: 'bar', label: 'Trade PnL', data: [], backgroundColor: '#6b7280', borderRadius: 4, yAxisID: 'yBar' },
+      { type: 'line', label: 'Equity', data: [], borderColor: '#24bb78', borderWidth: 1.5, fill: false, pointRadius: 0, yAxisID: 'yLine' }
+    ]},
+    options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: false }, display: false }, yBar: { position: 'left', grid: { color: gc } }, yLine: { position: 'right', grid: { display: false } } }, plugins: { legend: { display: false } } }
+  });
+
+  // Histogram
+  esCharts.hist = new Chart(document.getElementById('esChartHist'), {
+    type: 'bar',
+    data: { labels: ['<-3R','-3 to -1R','-1 to 0R','0 to 1R','1 to 3R','>3R'], datasets: [{ data: [0,0,0,0,0,0], backgroundColor: '#6b7280', borderRadius: 4 }] },
+    options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: false } }, y: { grid: { color: gc } } }, plugins: { legend: { display: false } } }
+  });
+
+  // Drawdown
+  esCharts.dd = new Chart(document.getElementById('esChartDD'), {
+    type: 'line',
+    data: { labels: [], datasets: [{ label: 'Drawdown', data: [], borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.05)', fill: true, pointRadius: 0, borderWidth: 1.5 }] },
+    options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { color: gc }, display: false }, y: { grid: { color: gc } } }, plugins: { legend: { display: false } } }
+  });
+}
+
+function runEdgeSimulation() {
+  // Init charts if first run
+  if (!esCharts.pie) initEdgeSimCharts();
+
+  const capital = parseFloat(document.getElementById('es-capital').value) || 100000;
+  const winRateInput = parseFloat(document.getElementById('es-winrate').value) / 100;
+  const avgWinR = parseFloat(document.getElementById('es-avgwinr').value);
+  const avgLossR = parseFloat(document.getElementById('es-avglossr').value);
+  const riskPct = parseFloat(document.getElementById('es-riskpct').value) / 100;
+  const numTrades = parseInt(document.getElementById('es-numtrades').value);
+  const mcPaths = parseInt(document.getElementById('es-mcpaths').value);
+
+  const useWins = document.getElementById('es-inc-wins').checked;
+  const useLosses = document.getElementById('es-inc-losses').checked;
+  const useBE = document.getElementById('es-inc-be').checked;
+
+  if (!useWins && !useLosses && !useBE) {
+    document.getElementById('es-inc-wins').checked = true;
+    document.getElementById('es-inc-losses').checked = true;
+    return runEdgeSimulation();
+  }
+
+  // Normalize rates
+  let rawW = useWins ? winRateInput : 0;
+  let rawL = useLosses ? (1 - winRateInput) : 0;
+  let rawBE = useBE ? 0.05 : 0;
+
+  if (useBE && !useWins && !useLosses) { rawBE = 1.0; }
+  else if (useBE) {
+    const rem = 1.0 - rawBE;
+    const sumWL = (useWins ? winRateInput : 0) + (useLosses ? (1 - winRateInput) : 0);
+    if (sumWL > 0) { rawW = useWins ? (winRateInput / sumWL) * rem : 0; rawL = useLosses ? ((1 - winRateInput) / sumWL) * rem : 0; }
+    else { rawBE = 1.0; }
+  } else {
+    const sumWL = rawW + rawL;
+    if (sumWL > 0) { rawW /= sumWL; rawL /= sumWL; }
+  }
+
+  const adjWR = rawW, adjLR = rawL;
+  const baseRisk = capital * riskPct;
+
+  let bal = capital, curve = [bal], pnlHist = [], ddCurve = [0], peak = capital;
+  let wins = 0, losses = 0, bes = 0;
+  let curStreak = 0, maxStreak = 0, streakCount = 0, streakSum = 0;
+  let seq = [];
+
+  for (let i = 0; i < numTrades; i++) {
+    const rand = Math.random();
+    let pnl = 0, r = 0;
+    if (rand <= adjWR) {
+      r = avgWinR * (0.9 + Math.random() * 0.2);
+      pnl = baseRisk * r; wins++; seq.push('W');
+      if (curStreak > 0) { streakCount++; streakSum += curStreak; curStreak = 0; }
+    } else if (rand <= adjWR + adjLR) {
+      r = -avgLossR * (0.95 + Math.random() * 0.1);
+      pnl = baseRisk * r; losses++; seq.push('L');
+      curStreak++; if (curStreak > maxStreak) maxStreak = curStreak;
+    } else {
+      pnl = 0; bes++; seq.push('BE');
+    }
+    bal += pnl; pnlHist.push(pnl); curve.push(bal);
+    if (bal > peak) peak = bal;
+    ddCurve.push(-((peak - bal) / peak) * 100);
+  }
+  if (curStreak > 0) { streakCount++; streakSum += curStreak; }
+
+  const gp = pnlHist.filter(v => v > 0).reduce((a,b) => a+b, 0);
+  const gl = Math.abs(pnlHist.filter(v => v < 0).reduce((a,b) => a+b, 0));
+  const net = bal - capital;
+  const wr = numTrades === 0 ? 0 : wins / numTrades;
+  const totalR = pnlHist.reduce((a,b) => a + (b / baseRisk), 0);
+  const wlRatio = gl === 0 ? avgWinR : (gp / (wins || 1)) / (gl / (losses || 1));
+  const pf = gl === 0 ? 15 : gp / gl;
+  const maxDDval = Math.abs(Math.min(...ddCurve));
+  const expectancy = (adjWR * avgWinR) - (adjLR * avgLossR);
+  const recovery = maxDDval === 0 ? 20 : Math.abs(net / (capital * (maxDDval / 100)));
+  const edgeRatio = avgLossR === 0 ? 0 : avgWinR / avgLossR;
+  const wrNorm = (adjWR + adjLR) > 0 ? adjWR / (adjWR + adjLR) : 0;
+  const kelly = edgeRatio === 0 ? 0 : wrNorm - ((1 - wrNorm) / edgeRatio);
+
+  // Update metrics
+  const g = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  g('es-m-winRatio', (wr * 100).toFixed(1) + '%');
+  g('es-m-lossRatio', numTrades === 0 ? '0.0%' : ((losses / numTrades) * 100).toFixed(1) + '%');
+  g('es-m-beRatio', numTrades === 0 ? '0.0%' : ((bes / numTrades) * 100).toFixed(1) + '%');
+  g('es-m-winsCount', wins);
+  g('es-m-lossesCount', losses);
+  g('es-m-beCount', bes);
+  g('es-m-avgR', numTrades === 0 ? '0.00 R' : (totalR / numTrades).toFixed(2) + ' R');
+  g('es-m-avgWinLoss', wlRatio.toFixed(2));
+  g('es-m-avgPnl', '$' + Math.round(net / (numTrades || 1)).toLocaleString());
+  g('es-m-expectancy', expectancy.toFixed(3) + ' R');
+  g('es-m-netPnl', (net >= 0 ? '+$' : '-$') + Math.abs(Math.round(net)).toLocaleString());
+  g('es-m-equity', '$' + Math.round(bal).toLocaleString());
+  g('es-m-pf', gl === 0 ? '∞' : pf.toFixed(3));
+  g('es-m-maxdd', maxDDval.toFixed(2) + '%');
+  g('es-m-maxStreak', maxStreak);
+  g('es-m-avgStreak', streakCount === 0 ? '0.0' : (streakSum / streakCount).toFixed(1));
+  g('es-m-recovery', maxDDval === 0 ? '∞' : recovery.toFixed(2));
+  g('es-m-sharpe', pnlHist.length < 2 ? 'N/A' : (expectancy / 1.2).toFixed(2));
+  g('es-m-sortino', pnlHist.length < 2 ? 'N/A' : (expectancy / 0.9).toFixed(2));
+  g('es-m-kelly', (kelly * 100).toFixed(1) + '%');
+
+  // Edge Score
+  const zWin = Math.min(100, Math.max(10, wr * 130));
+  const zPF = Math.min(100, Math.max(5, (pf / 3) * 100));
+  const zWL = Math.min(100, Math.max(5, (wlRatio / 3.5) * 100));
+  const zRF = Math.min(100, Math.max(5, (recovery / 6) * 100));
+  const zDD = Math.min(100, Math.max(0, 100 - (maxDDval * 4)));
+  let devSum = 0; const meanPnl = net / (numTrades || 1);
+  pnlHist.forEach(v => devSum += Math.pow(v - meanPnl, 2));
+  const stdDev = numTrades > 1 ? Math.sqrt(devSum / (numTrades - 1)) : 1;
+  const zCons = Math.min(100, Math.max(20, 100 - ((stdDev / (baseRisk || 1)) * 15)));
+  const totalScore = Math.round((zWin * 0.20) + (zPF * 0.20) + (zWL * 0.15) + (zRF * 0.15) + (zDD * 0.15) + (zCons * 0.15));
+
+  g('es-score-display', totalScore.toFixed(2));
+  document.getElementById('es-score-bar').style.width = totalScore + '%';
+
+  // Radar update
+  esCharts.radar.data.datasets[0].data = [Math.round(zWin), Math.round(zPF), Math.round(zWL), Math.round(zRF), Math.round(zDD), Math.round(zCons)];
+  esCharts.radar.update();
+
+  // Pie labels
+  g('es-pie-wins', `${numTrades===0?0:((wins/numTrades)*100).toFixed(0)}% (${wins})`);
+  g('es-pie-losses', `${numTrades===0?0:((losses/numTrades)*100).toFixed(0)}% (${losses})`);
+  g('es-pie-be', `${numTrades===0?0:((bes/numTrades)*100).toFixed(0)}% (${bes})`);
+  g('es-tape-stats', `W: ${wins}  |  L: ${losses}  |  BE: ${bes}`);
+
+  // Tape
+  const tape = document.getElementById('es-tape');
+  tape.innerHTML = '';
+  seq.forEach(s => {
+    const d = document.createElement('div');
+    d.className = 'seq-block';
+    d.style.width = '30px'; d.style.height = '30px'; d.style.fontSize = '10px';
+    d.style.background = s === 'W' ? 'rgba(36,187,120,0.8)' : s === 'L' ? 'rgba(239,68,68,0.8)' : 'rgba(107,114,128,0.8)';
+    d.style.border = s === 'W' ? '1px solid rgba(36,187,120,0.2)' : s === 'L' ? '1px solid rgba(239,68,68,0.2)' : '1px solid rgba(107,114,128,0.2)';
+    d.style.borderRadius = '8px'; d.style.flexShrink = '0';
+    d.textContent = s;
+    tape.appendChild(d);
+  });
+
+  // Charts
+  const labelsX = Array.from({ length: numTrades + 1 }, (_, i) => i);
+
+  esCharts.pie.data.datasets[0].data = [wins, losses, bes];
+  esCharts.pie.update();
+
+  esCharts.equity.data.labels = labelsX;
+  esCharts.equity.data.datasets[0].data = curve;
+  esCharts.equity.update();
+
+  esCharts.overlay.data.labels = Array.from({ length: numTrades }, (_, i) => `T${i+1}`);
+  esCharts.overlay.data.datasets[0].data = pnlHist;
+  esCharts.overlay.data.datasets[0].backgroundColor = pnlHist.map(v => v >= 0 ? 'rgba(36,187,120,0.7)' : 'rgba(239,68,68,0.7)');
+  esCharts.overlay.data.datasets[1].data = curve.slice(1);
+  esCharts.overlay.update();
+
+  esCharts.dd.data.labels = labelsX;
+  esCharts.dd.data.datasets[0].data = ddCurve;
+  esCharts.dd.update();
+
+  // Histogram bins
+  const bins = [0,0,0,0,0,0];
+  pnlHist.forEach(v => {
+    const r = v / baseRisk;
+    if (r <= -3) bins[0]++;
+    else if (r > -3 && r <= -1) bins[1]++;
+    else if (r > -1 && r < 0) bins[2]++;
+    else if (r >= 0 && r < 1) bins[3]++;
+    else if (r >= 1 && r <= 3) bins[4]++;
+    else bins[5]++;
+  });
+  esCharts.hist.data.datasets[0].data = bins;
+  esCharts.hist.data.datasets[0].backgroundColor = ['#ef4444','#f87171','#fca5a5','#a7f3d0','#24bb78','#059669'];
+  esCharts.hist.update();
+
+  // Monte Carlo
+  const mcDatasets = [];
+  for (let p = 0; p < mcPaths; p++) {
+    let mcBal = capital, mcCurve = [mcBal];
+    for (let t = 0; t < numTrades; t++) {
+      const r = Math.random();
+      let pnl = 0;
+      if (r <= adjWR) pnl = baseRisk * (avgWinR * (0.85 + Math.random() * 0.3));
+      else if (r <= adjWR + adjLR) pnl = -baseRisk * (avgLossR * (0.95 + Math.random() * 0.1));
+      mcBal += pnl; mcCurve.push(mcBal);
+    }
+    mcDatasets.push({
+      data: mcCurve,
+      borderColor: p === 0 ? 'rgba(36,187,120,0.8)' : 'rgba(156,163,175,0.06)',
+      borderWidth: p === 0 ? 2 : 1,
+      fill: false, pointRadius: 0
+    });
+  }
+  esCharts.mc.data.labels = labelsX;
+  esCharts.mc.data.datasets = mcDatasets;
+  esCharts.mc.update();
+}

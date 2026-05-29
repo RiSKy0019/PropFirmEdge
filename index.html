@@ -52,6 +52,7 @@
       <a class="nav-link active" href="#" onclick="showPage('home',this)">Home</a>
       <a class="nav-link" href="#" onclick="showPage('compare',this)">Compare</a>
       <a class="nav-link" href="#" onclick="showPage('simulator',this)">Simulator</a>
+      <a class="nav-link" href="#" onclick="showPage('edgesim',this)">Edge Simulation</a>
       <a class="nav-link" href="#" onclick="showPage('tracker',this)">Tracker</a>
     </div>
     <div class="nav-right">
@@ -74,6 +75,7 @@
     <a class="mobile-link" href="#" onclick="showPage('home',null);toggleMobileMenu()">Home</a>
     <a class="mobile-link" href="#" onclick="showPage('compare',null);toggleMobileMenu()">Compare</a>
     <a class="mobile-link" href="#" onclick="showPage('simulator',null);toggleMobileMenu()">Simulator</a>
+    <a class="mobile-link" href="#" onclick="showPage('edgesim',null);toggleMobileMenu()">Edge Simulation</a>
     <a class="mobile-link" href="#" onclick="showPage('tracker',null);toggleMobileMenu()">Tracker</a>
   </div>
 </nav>
@@ -446,6 +448,144 @@
           <div class="sim-chart-card"><p class="chart-label">R-Multiple Histogram</p><div style="flex:1;min-height:0;"><canvas id="chartHist"></canvas></div></div>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== EDGE SIMULATION PAGE ===================== -->
+<div id="page-edgesim" class="page">
+  <div class="section-wrap" style="padding-top:40px;padding-bottom:56px;">
+    <div style="margin-bottom:28px;">
+      <h2 class="section-title">Edge Simulation</h2>
+      <p style="color:#989898;margin-top:6px;font-size:14px;">Advanced performance simulation engine — Monte Carlo, R-distribution, drawdown tracking, and Edge Score profiling.</p>
+    </div>
+
+    <!-- SYSTEM CONTROLS -->
+    <div class="es-card" style="margin-bottom:24px;">
+      <div class="es-card-bar"></div>
+      <h3 class="es-section-label">System Controls &amp; Parameters</h3>
+      <div class="es-controls-grid">
+        <div><label class="sim-label">Capital Size ($)</label><input type="number" id="es-capital" value="100000" step="5000" class="sim-input"></div>
+        <div><label class="sim-label">Win Rate %</label><input type="number" id="es-winrate" value="55" class="sim-input"></div>
+        <div><label class="sim-label">Avg Win R</label><input type="number" id="es-avgwinr" value="1.5" step="0.1" class="sim-input"></div>
+        <div><label class="sim-label">Avg Loss R</label><input type="number" id="es-avglossr" value="1" step="0.1" class="sim-input"></div>
+        <div><label class="sim-label">Risk Per Trade %</label><input type="number" id="es-riskpct" value="0.5" step="0.1" class="sim-input"></div>
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+            <label class="sim-label" style="margin-bottom:0;">Sample Size</label>
+            <span id="es-sample-meter" class="es-meter es-meter-red">Extreme Noise</span>
+          </div>
+          <input type="number" id="es-numtrades" value="35" oninput="esUpdateSampleMeter()" class="sim-input">
+        </div>
+        <div><label class="sim-label">Monte Carlo Paths</label><input type="number" id="es-mcpaths" value="30" class="sim-input"></div>
+      </div>
+
+      <div class="es-controls-footer">
+        <div class="es-outcome-toggles">
+          <span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:#989898;">Outcome Distribution:</span>
+          <label class="es-toggle-pill es-toggle-win"><input type="checkbox" id="es-inc-wins" checked> <span>Win</span></label>
+          <label class="es-toggle-pill es-toggle-loss"><input type="checkbox" id="es-inc-losses" checked> <span>Loss</span></label>
+          <label class="es-toggle-pill es-toggle-be"><input type="checkbox" id="es-inc-be" checked> <span>BE</span></label>
+        </div>
+        <button onclick="runEdgeSimulation()" class="es-run-btn">Simulate Engine</button>
+      </div>
+    </div>
+
+    <!-- METRICS + RADAR + PIE ROW -->
+    <div class="es-main-grid">
+      <!-- LEFT: Metrics -->
+      <div class="es-card es-metrics-panel">
+        <!-- Core Baseline -->
+        <div>
+          <p class="es-metric-group-label">Core Baseline Variables</p>
+          <div class="es-metrics-grid">
+            <div class="es-metric"><p class="es-metric-label">Win Ratio</p><h3 id="es-m-winRatio" class="es-metric-val">-</h3></div>
+            <div class="es-metric"><p class="es-metric-label">Loss Ratio</p><h3 id="es-m-lossRatio" class="es-metric-val">-</h3></div>
+            <div class="es-metric"><p class="es-metric-label">BE Ratio</p><h3 id="es-m-beRatio" class="es-metric-val">-</h3></div>
+            <div class="es-metric"><p class="es-metric-label">Wins Count</p><h3 id="es-m-winsCount" class="es-metric-val" style="color:#24bb78;">-</h3></div>
+            <div class="es-metric"><p class="es-metric-label">Losses Count</p><h3 id="es-m-lossesCount" class="es-metric-val" style="color:#ef4444;">-</h3></div>
+            <div class="es-metric"><p class="es-metric-label">BE Count</p><h3 id="es-m-beCount" class="es-metric-val">-</h3></div>
+            <div class="es-metric"><p class="es-metric-label">Average R</p><h3 id="es-m-avgR" class="es-metric-val">-</h3></div>
+            <div class="es-metric"><p class="es-metric-label">Avg Win/Loss</p><h3 id="es-m-avgWinLoss" class="es-metric-val">-</h3></div>
+          </div>
+        </div>
+        <!-- Financial Performance -->
+        <div style="border-top:1px solid rgba(36,187,120,0.1);padding-top:16px;">
+          <p class="es-metric-group-label">Financial Performance &amp; Expectancy</p>
+          <div class="es-metrics-grid">
+            <div class="es-metric"><p class="es-metric-label">Average PnL</p><h3 id="es-m-avgPnl" class="es-metric-val">-</h3></div>
+            <div class="es-metric"><p class="es-metric-label">Expectancy</p><h3 id="es-m-expectancy" class="es-metric-val" style="color:#24bb78;">-</h3></div>
+            <div class="es-metric"><p class="es-metric-label">Net PnL</p><h3 id="es-m-netPnl" class="es-metric-val">-</h3></div>
+            <div class="es-metric"><p class="es-metric-label">Current Equity</p><h3 id="es-m-equity" class="es-metric-val">-</h3></div>
+            <div class="es-metric"><p class="es-metric-label">Profit Factor</p><h3 id="es-m-pf" class="es-metric-val">-</h3></div>
+            <div class="es-metric"><p class="es-metric-label">Max Drawdown</p><h3 id="es-m-maxdd" class="es-metric-val" style="color:#ef4444;">-</h3></div>
+            <div class="es-metric"><p class="es-metric-label">Max Losing Streak</p><h3 id="es-m-maxStreak" class="es-metric-val">-</h3></div>
+            <div class="es-metric"><p class="es-metric-label">Avg Losing Streak</p><h3 id="es-m-avgStreak" class="es-metric-val">-</h3></div>
+          </div>
+        </div>
+        <!-- Advanced Risk -->
+        <div style="border-top:1px solid rgba(36,187,120,0.1);padding-top:16px;">
+          <p class="es-metric-group-label">Advanced Portfolio Risk Analytics</p>
+          <div class="es-metrics-grid">
+            <div class="es-metric"><p class="es-metric-label">Recovery Factor</p><h3 id="es-m-recovery" class="es-metric-val">-</h3></div>
+            <div class="es-metric"><p class="es-metric-label">Sharpe Ratio</p><h3 id="es-m-sharpe" class="es-metric-val">-</h3></div>
+            <div class="es-metric"><p class="es-metric-label">Sortino Ratio</p><h3 id="es-m-sortino" class="es-metric-val">-</h3></div>
+            <div class="es-metric"><p class="es-metric-label">Kelly Criterion</p><h3 id="es-m-kelly" class="es-metric-val" style="color:#24bb78;">-</h3></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MIDDLE: Edge Score Radar -->
+      <div class="es-card es-radar-panel">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <h4 class="es-section-label" style="margin-bottom:0;">Edge Score Profile</h4>
+          <span style="color:#989898;font-size:11px;cursor:help;" title="Proprietary evaluation tracking system scoring your edge across 6 dimensions.">ⓘ</span>
+        </div>
+        <div style="height:180px;position:relative;"><canvas id="esRadarChart"></canvas></div>
+        <div style="border-top:1px solid rgba(36,187,120,0.1);padding-top:12px;margin-top:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
+            <span style="font-size:10px;font-weight:700;color:#989898;text-transform:uppercase;letter-spacing:0.08em;">Engine Evaluation Index</span>
+            <span id="es-score-display" class="mono" style="font-size:24px;font-weight:900;color:#24bb78;">-</span>
+          </div>
+          <div style="width:100%;height:8px;background:#1b1b1b;border-radius:999px;overflow:hidden;border:1px solid #212121;">
+            <div id="es-score-bar" style="width:0%;height:100%;background:linear-gradient(to right,#ef4444,#f59e0b,#24bb78);transition:width 0.5s;border-radius:999px;"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:9px;font-weight:700;color:#989898;margin-top:4px;text-transform:uppercase;letter-spacing:0.1em;">
+            <span>0</span><span>20</span><span>40</span><span>60</span><span>80</span><span>100</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Outcome Pie -->
+      <div class="es-card es-pie-panel">
+        <h4 class="es-section-label">Outcome Split Target</h4>
+        <div style="height:180px;position:relative;"><canvas id="esPieChart"></canvas></div>
+        <div style="border-top:1px solid rgba(36,187,120,0.1);padding-top:12px;margin-top:12px;font-size:12px;color:#989898;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="display:flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:#24bb78;"></span>Wins Ratio:</span><span id="es-pie-wins" class="mono" style="font-weight:700;">-</span></div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="display:flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:#ef4444;"></span>Losses Ratio:</span><span id="es-pie-losses" class="mono" style="font-weight:700;">-</span></div>
+          <div style="display:flex;justify-content:space-between;"><span style="display:flex;align-items:center;gap:6px;"><span style="width:8px;height:8px;border-radius:50%;background:#6b7280;"></span>BE Ratio:</span><span id="es-pie-be" class="mono" style="font-weight:700;">-</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRADE SEQUENCE TAPE -->
+    <div class="es-card" style="margin-top:20px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <h4 class="es-section-label" style="margin-bottom:0;">Chronological Sequence Execution Tape</h4>
+        <span id="es-tape-stats" style="font-size:12px;font-weight:700;color:#24bb78;letter-spacing:0.04em;"></span>
+      </div>
+      <div id="es-tape" style="display:flex;gap:6px;overflow-x:auto;padding:8px 0;min-height:44px;align-items:center;" class="custom-scrollbar">
+        <span style="font-size:12px;color:#989898;font-style:italic;">Execute a simulation to populate chronology.</span>
+      </div>
+    </div>
+
+    <!-- CHARTS GRID -->
+    <div class="es-charts-grid" style="margin-top:20px;">
+      <div class="es-card es-chart-card"><h4 class="chart-label">Primary Cumulative Equity Curve</h4><div style="flex:1;min-height:0;"><canvas id="esChartEquity"></canvas></div></div>
+      <div class="es-card es-chart-card"><h4 class="chart-label">Monte Carlo Risk Envelope</h4><div style="flex:1;min-height:0;"><canvas id="esChartMC"></canvas></div></div>
+      <div class="es-card es-chart-card"><h4 class="chart-label">Equity &amp; R Distribution Overlay</h4><div style="flex:1;min-height:0;"><canvas id="esChartOverlay"></canvas></div></div>
+      <div class="es-card es-chart-card"><h4 class="chart-label">R-Distribution Histogram</h4><div style="flex:1;min-height:0;"><canvas id="esChartHist"></canvas></div></div>
+      <div class="es-card es-chart-card es-chart-wide"><h4 class="chart-label">Underwater Drawdown Tracker</h4><div style="flex:1;min-height:0;"><canvas id="esChartDD"></canvas></div></div>
     </div>
   </div>
 </div>
