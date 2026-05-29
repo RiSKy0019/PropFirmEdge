@@ -444,6 +444,23 @@
       </div>
       <!-- RIGHT CHARTS -->
       <div class="sim-right">
+
+        <!-- ★ RESULT BANNER — shown prominently at top after simulation -->
+        <div id="simResultBanner" class="sim-result-banner sim-result-idle">
+          <div class="sim-result-icon" id="simResultIcon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+          </div>
+          <div class="sim-result-body">
+            <div id="simResultTitle" class="sim-result-title">Awaiting Simulation</div>
+            <div id="simResultSub" class="sim-result-sub">Configure your strategy &amp; rules, then run the simulation.</div>
+          </div>
+          <div class="sim-result-right">
+            <div id="simPassProbBig" class="sim-result-prob">—</div>
+            <div class="sim-result-prob-label">Pass Rate</div>
+            <div class="sim-result-prob-bar-bg"><div id="simProbBarBig" class="sim-result-prob-bar" style="width:0%"></div></div>
+          </div>
+        </div>
+
         <div class="sim-stats-row">
           <div class="sim-stat"><p class="ss-label">Net PnL</p><p id="sm-equity" class="ss-val">—</p></div>
           <div class="sim-stat"><p class="ss-label">Expectancy</p><p id="sm-expect" class="ss-val" style="color:#3b82f6;">—</p></div>

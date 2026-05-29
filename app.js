@@ -812,22 +812,41 @@ function runSim() {
   const daysPassed = path.days >= minDays;
   const targetMet = netPnL >= target;
 
-  const auditBox = document.getElementById('simAuditBox');
-  if (auditBox) {
-    if (path.failReason === 'MAX_DD') auditBox.innerHTML = `<div><span style="font-size:12px;font-weight:700;color:#ef4444;">BREACHED — Max Drawdown</span><p style="font-size:11px;color:#989898;margin-top:2px;">Account exceeded drawdown limit.</p></div><div style="width:28px;height:28px;border-radius:50%;background:rgba(239,68,68,0.12);display:flex;align-items:center;justify-content:center;color:#ef4444;font-weight:700;">✕</div>`;
-    else if (path.failReason === 'DAILY_LOSS') auditBox.innerHTML = `<div><span style="font-size:12px;font-weight:700;color:#ef4444;">BREACHED — Daily Loss</span><p style="font-size:11px;color:#989898;margin-top:2px;">Daily cap exceeded.</p></div><div style="width:28px;height:28px;border-radius:50%;background:rgba(239,68,68,0.12);display:flex;align-items:center;justify-content:center;color:#ef4444;font-weight:700;">✕</div>`;
-    else if (!targetMet) auditBox.innerHTML = `<div><span style="font-size:12px;font-weight:700;color:#f59e0b;">Target Not Reached</span><p style="font-size:11px;color:#989898;margin-top:2px;">Rules clean but target not met.</p></div><div style="width:28px;height:28px;border-radius:50%;background:rgba(245,158,11,0.12);display:flex;align-items:center;justify-content:center;color:#f59e0b;font-weight:700;">!</div>`;
-    else if (!consPassed) auditBox.innerHTML = `<div><span style="font-size:12px;font-weight:700;color:#f59e0b;">Consistency Violation</span></div><div style="width:28px;height:28px;border-radius:50%;background:rgba(245,158,11,0.12);display:flex;align-items:center;justify-content:center;color:#f59e0b;font-weight:700;">!</div>`;
-    else if (!daysPassed) auditBox.innerHTML = `<div><span style="font-size:12px;font-weight:700;color:#f59e0b;">Min Days Not Met</span></div><div style="width:28px;height:28px;border-radius:50%;background:rgba(245,158,11,0.12);display:flex;align-items:center;justify-content:center;color:#f59e0b;font-weight:700;">!</div>`;
-    else auditBox.innerHTML = `<div><span style="font-size:12px;font-weight:700;color:#24bb78;">✓ EVALUATION PASSED</span><p style="font-size:11px;color:#989898;margin-top:2px;">All compliance rules verified.</p></div><div style="width:28px;height:28px;border-radius:50%;background:rgba(36,187,120,0.12);display:flex;align-items:center;justify-content:center;color:#24bb78;font-weight:700;">✓</div>`;
+  // ── Determine result state ─────────────────────────────────
+  let resultState, resultTitle, resultSub, resultIcon;
+  if (path.failReason === 'MAX_DD') {
+    resultState = 'breach';
+    resultTitle = '✕ BREACHED — Max Drawdown';
+    resultSub   = 'Account exceeded the maximum drawdown limit. The evaluation is invalidated.';
+    resultIcon  = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>`;
+  } else if (path.failReason === 'DAILY_LOSS') {
+    resultState = 'breach';
+    resultTitle = '✕ BREACHED — Daily Loss Limit';
+    resultSub   = 'Intraday loss exceeded the daily cap. Evaluation stops here.';
+    resultIcon  = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>`;
+  } else if (!targetMet) {
+    resultState = 'warn';
+    resultTitle = '⚠ Target Not Reached';
+    resultSub   = `Net PnL $${Math.round(netPnL).toLocaleString()} fell short of the $${target.toLocaleString()} profit target. Rules intact but eval incomplete.`;
+    resultIcon  = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+  } else if (!consPassed) {
+    resultState = 'warn';
+    resultTitle = '⚠ Consistency Rule Violated';
+    resultSub   = `A single day's profit exceeded the ${consPct}% concentration cap. Target hit but consistency rule failed.`;
+    resultIcon  = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+  } else if (!daysPassed) {
+    resultState = 'warn';
+    resultTitle = '⚠ Minimum Trading Days Not Met';
+    resultSub   = `Target hit in only ${path.days} days but ${minDays} minimum trading days are required.`;
+    resultIcon  = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+  } else {
+    resultState = 'pass';
+    resultTitle = '✓ EVALUATION PASSED';
+    resultSub   = `Profit target hit, all drawdown rules clean, ${path.days} trading days recorded. Ready for funded account.`;
+    resultIcon  = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-5"/></svg>`;
   }
 
-  g('sa-target', `$${Math.round(netPnL).toLocaleString()} / $${target.toLocaleString()}`, targetMet ? '#24bb78' : '#ef4444');
-  g('sa-dd', `$${Math.round(path.worstDD).toLocaleString()} / $${maxDD.toLocaleString()}`, !path.failReason ? '#24bb78' : '#ef4444');
-  g('sa-cons', netPnL > 0 && consPct > 0 ? (path.hiWin / netPnL * 100).toFixed(1) + '%' : 'N/A', consPassed ? '#24bb78' : '#f59e0b');
-  g('sa-daily', path.failReason !== 'DAILY_LOSS' ? 'Passed' : 'VIOLATED', path.failReason !== 'DAILY_LOSS' ? '#24bb78' : '#ef4444');
-  g('sa-days', `${path.days} / ${minDays} required`, daysPassed ? '#24bb78' : '#f59e0b');
-
+  // ── Run Monte Carlo pass probability ──────────────────────
   let passCount = 0;
   for (let i = 0; i < simPathCount; i++) {
     const p2 = simulate(capital, wr, rr, riskPct, numTrades, daily, maxDD, ddType);
@@ -836,8 +855,39 @@ function runSim() {
     if (!p2.failReason && n2 >= target && c2 && p2.days >= minDays) passCount++;
   }
   const pct = (passCount / simPathCount * 100).toFixed(1);
-  g('simPassProb', pct + '%', pct >= 60 ? '#24bb78' : pct >= 35 ? '#f59e0b' : '#ef4444');
-  const bar = document.getElementById('simProbBar'); if (bar) { bar.style.width = pct + '%'; bar.style.background = pct >= 60 ? '#24bb78' : pct >= 35 ? '#f59e0b' : '#ef4444'; }
+  const pctColor = pct >= 60 ? '#24bb78' : pct >= 35 ? '#f59e0b' : '#ef4444';
+
+  // ── Update BIG result banner (top of right panel) ─────────
+  const banner = document.getElementById('simResultBanner');
+  if (banner) {
+    banner.className = `sim-result-banner sim-result-${resultState === 'breach' ? 'breach' : resultState === 'warn' ? 'warn' : 'pass'}`;
+    const iconEl = document.getElementById('simResultIcon'); if (iconEl) iconEl.innerHTML = resultIcon;
+    const titleEl = document.getElementById('simResultTitle'); if (titleEl) titleEl.textContent = resultTitle;
+    const subEl = document.getElementById('simResultSub'); if (subEl) subEl.textContent = resultSub;
+    const probBig = document.getElementById('simPassProbBig'); if (probBig) { probBig.textContent = pct + '%'; }
+    const barBig = document.getElementById('simProbBarBig'); if (barBig) barBig.style.width = pct + '%';
+  }
+
+  // ── Update small audit panel (left sidebar) ───────────────
+  const auditBox = document.getElementById('simAuditBox');
+  if (auditBox) {
+    const colors = { breach: '#ef4444', warn: '#f59e0b', pass: '#24bb78' };
+    const bgs    = { breach: 'rgba(239,68,68,0.12)', warn: 'rgba(245,158,11,0.12)', pass: 'rgba(36,187,120,0.12)' };
+    const marks  = { breach: '✕', warn: '!', pass: '✓' };
+    const col = colors[resultState]; const bg = bgs[resultState]; const mark = marks[resultState];
+    auditBox.innerHTML = `<div><span style="font-size:12px;font-weight:700;color:${col};">${resultTitle}</span><p style="font-size:11px;color:var(--c-text3);margin-top:2px;">${resultSub}</p></div><div style="width:28px;height:28px;border-radius:50%;background:${bg};display:flex;align-items:center;justify-content:center;color:${col};font-weight:800;flex-shrink:0;">${mark}</div>`;
+  }
+
+  g('sa-target', `$${Math.round(netPnL).toLocaleString()} / $${target.toLocaleString()}`, targetMet ? '#24bb78' : '#ef4444');
+  g('sa-dd', `$${Math.round(path.worstDD).toLocaleString()} / $${maxDD.toLocaleString()}`, !path.failReason ? '#24bb78' : '#ef4444');
+  g('sa-cons', netPnL > 0 && consPct > 0 ? (path.hiWin / netPnL * 100).toFixed(1) + '%' : 'N/A', consPassed ? '#24bb78' : '#f59e0b');
+  g('sa-daily', path.failReason !== 'DAILY_LOSS' ? 'Passed' : 'VIOLATED', path.failReason !== 'DAILY_LOSS' ? '#24bb78' : '#ef4444');
+  g('sa-days', `${path.days} / ${minDays} required`, daysPassed ? '#24bb78' : '#f59e0b');
+
+  // ── Small audit prob bar ───────────────────────────────────
+  g('simPassProb', pct + '%', pctColor);
+  g('simPathsDisplay', simPathCount);
+  const bar = document.getElementById('simProbBar'); if (bar) { bar.style.width = pct + '%'; bar.style.background = pctColor; }
   g('simProbLabel', pct >= 60 ? 'Strong pass probability — strategy aligns well with rules.' : pct >= 35 ? 'Moderate — consider adjusting risk or win rate.' : 'Low pass rate — strategy frequently violates rules.');
 
   renderSimCharts(path, numTrades, capital, riskPct, target, maxDD, ddType, wr, rr);
